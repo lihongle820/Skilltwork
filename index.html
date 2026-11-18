@@ -1,0 +1,1357 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-mode="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Skill 工作台 · 秋招/考研人的技能卡片库</title>
+<style>
+/* ============================================================
+   设计令牌 · 全局变量体系
+============================================================ */
+:root{
+  /* 字体栈 */
+  --font-sans:Inter,system-ui,-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Noto Sans SC","Microsoft YaHei",sans-serif;
+  --font-mono:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+  /* 字号层级 */
+  --fs-hero:22px;--fs-page-h2:19px;--fs-card-title:14.5px;--fs-body:13.5px;--fs-small:12px;--fs-micro:11px;
+  /* 间距刻度（只允许复用这套值） */
+  --sp-1:4px;--sp-2:8px;--sp-3:12px;--sp-4:16px;--sp-5:20px;--sp-6:24px;--sp-8:32px;
+  /* 圆角分级 */
+  --r-lg:18px;--r-md:14px;--r-sm:10px;--r-xs:8px;--r-pill:999px;
+  /* 动效基准 */
+  --ease:cubic-bezier(.2,0,.2,1);
+  --dur-f:140ms;--dur-n:220ms;--dur-s:300ms;
+  /* 层级 */
+  --z-mask:90;--z-drawer:100;--z-modal:120;--z-toast:300;
+}
+/* ---------- 主题1：薰衣草紫（默认浅） ---------- */
+html[data-theme="lavender"][data-dim="0"]{
+  --p:#5b6fd0;--pr:91,111,208;--purple:#8a6fc0;
+  --bg:#f3f5fa;--card:#ffffff;--card2:#f8f9fd;--tx:#1c2030;--tx2:#565d75;--mu:#8b92a8;
+  --bd:#e6e9f2;--ok:#3a9e6f;--warn:#c98a1f;--danger:#d0564b;
+  --sh:0 2px 10px rgba(28,32,48,.05);--shl:0 14px 34px rgba(28,32,48,.13);
+  --pgrad:linear-gradient(135deg,#5b6fd0,#7c8ce2);
+}
+html[data-theme="lavender"][data-dim="1"]{
+  --p:#8b9be8;--pr:139,155,232;--purple:#a68fd6;
+  --bg:#0e1017;--card:#181b25;--card2:#1e2230;--tx:#e8eaf2;--tx2:#a4abc2;--mu:#79809a;
+  --bd:#262b3a;--ok:#5cbf8e;--warn:#d8a94e;--danger:#e0786c;
+  --sh:0 2px 12px rgba(0,0,0,.35);--shl:0 14px 36px rgba(0,0,0,.5);
+  --pgrad:linear-gradient(135deg,#6d7fd8,#8b9be8);
+}
+/* ---------- 主题2：海盐青森 ---------- */
+html[data-theme="ocean"][data-dim="0"]{
+  --p:#2f9e8f;--pr:47,158,143;--purple:#4a8fa8;
+  --bg:#eef6f4;--card:#ffffff;--card2:#f4faf8;--tx:#17302c;--tx2:#4a6b64;--mu:#7fa39b;
+  --bd:#d9e9e5;--ok:#2f9e8f;--warn:#c08a2a;--danger:#c85a4e;
+  --sh:0 2px 10px rgba(23,48,44,.06);--shl:0 14px 34px rgba(23,48,44,.13);
+  --pgrad:linear-gradient(135deg,#2f9e8f,#55c0b0);
+}
+html[data-theme="ocean"][data-dim="1"]{
+  --p:#5ec9b8;--pr:94,201,184;--purple:#6fa8c0;
+  --bg:#0c1514;--card:#15211f;--card2:#1a2926;--tx:#e3f0ed;--tx2:#9dbfb7;--mu:#6f948c;
+  --bd:#243b36;--ok:#5ec9a8;--warn:#d8ac5c;--danger:#d98a7e;
+  --sh:0 2px 12px rgba(0,0,0,.35);--shl:0 14px 36px rgba(0,0,0,.5);
+  --pgrad:linear-gradient(135deg,#2c8579,#5ec9b8);
+}
+/* ---------- 主题3：炭灰午夜（暗色为主，月亮键切深浅） ---------- */
+html[data-theme="midnight"][data-dim="0"]{
+  --p:#7c8db0;--pr:124,141,176;--purple:#9a8fc0;
+  --bg:#15171e;--card:#1c2029;--card2:#222735;--tx:#e6e9f2;--tx2:#9aa3b8;--mu:#6c7488;
+  --bd:#2a2f3c;--ok:#6fbf94;--warn:#d0a35c;--danger:#d97a6f;
+  --sh:0 2px 12px rgba(0,0,0,.35);--shl:0 14px 36px rgba(0,0,0,.5);
+  --pgrad:linear-gradient(135deg,#5f6f92,#7c8db0);
+}
+html[data-theme="midnight"][data-dim="1"]{
+  --p:#8a97b8;--pr:138,151,184;--purple:#a89cc8;
+  --bg:#0d0f14;--card:#161a22;--card2:#1b2029;--tx:#dfe3ee;--tx2:#8f98ad;--mu:#626a7e;
+  --bd:#232836;--ok:#63b489;--warn:#c79a52;--danger:#cf7268;
+  --sh:0 2px 12px rgba(0,0,0,.4);--shl:0 14px 36px rgba(0,0,0,.55);
+  --pgrad:linear-gradient(135deg,#55638a,#8a97b8);
+}
+/* ---------- 主题4：蜜桃日落 ---------- */
+html[data-theme="peach"][data-dim="0"]{
+  --p:#e2804f;--pr:226,128,79;--purple:#c9788f;
+  --bg:#fdf6f1;--card:#fffdfb;--card2:#fbf0e9;--tx:#3a2620;--tx2:#7a5b50;--mu:#b0968b;
+  --bd:#f0dfd4;--ok:#4d9e6b;--warn:#c98a1f;--danger:#cf5b4e;
+  --sh:0 2px 10px rgba(58,38,32,.06);--shl:0 14px 34px rgba(58,38,32,.13);
+  --pgrad:linear-gradient(135deg,#e2804f,#eda06f);
+}
+html[data-theme="peach"][data-dim="1"]{
+  --p:#f09a68;--pr:240,154,104;--purple:#d08aa0;
+  --bg:#1a1210;--card:#251a16;--card2:#2b1f1a;--tx:#f3e9e4;--tx2:#c4a99d;--mu:#96786c;
+  --bd:#3a2a24;--ok:#6cb488;--warn:#d8a94e;--danger:#e08579;
+  --sh:0 2px 12px rgba(0,0,0,.35);--shl:0 14px 36px rgba(0,0,0,.5);
+  --pgrad:linear-gradient(135deg,#c9713f,#f09a68);
+}
+/* ---------- 兼容旧 data-mode 选择器 ---------- */
+html[data-mode="dark"]{--p:#8b9be8;--pr:139,155,232;--purple:#a68fd6;--bg:#0e1017;--card:#181b25;--card2:#1e2230;--tx:#e8eaf2;--tx2:#a4abc2;--mu:#79809a;--bd:#262b3a;--ok:#5cbf8e;--warn:#d8a94e;--danger:#e0786c;--sh:0 2px 12px rgba(0,0,0,.35);--shl:0 14px 36px rgba(0,0,0,.5);--pgrad:linear-gradient(135deg,#6d7fd8,#8b9be8)}
+
+/* ============================================================
+   基础
+============================================================ */
+*,*::before,*::after{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;font-family:var(--font-sans);background:var(--bg);color:var(--tx);-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;transition:background var(--dur-n) var(--ease),color var(--dur-n) var(--ease)}
+button,input,textarea,select{font-family:inherit;font-size:var(--fs-body)}
+h2,h3,h4{margin:0;line-height:1.25;letter-spacing:.01em}
+p{line-height:1.6}
+pre,.pprev,.accb pre,code{font-family:var(--font-mono);letter-spacing:-.01em}
+:focus-visible{outline:2px solid rgba(var(--pr),.6);outline-offset:2px;border-radius:6px}
+.wrap{max-width:1200px;margin:0 auto;padding:0 var(--sp-5)}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+}
+/* ---------- 滚动条美化（适配全部主题） ---------- */
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(var(--pr),.32);border-radius:99px;border:2.5px solid transparent;background-clip:padding-box;transition:background var(--dur-n)}
+::-webkit-scrollbar-thumb:hover{background:rgba(var(--pr),.55);background-clip:padding-box}
+html{scrollbar-width:thin;scrollbar-color:rgba(var(--pr),.4) transparent}
+
+/* ---------- 顶栏 ---------- */
+.topbar{position:sticky;top:0;z-index:60;background:color-mix(in srgb,var(--card) 86%,transparent);backdrop-filter:blur(10px) saturate(1.1);-webkit-backdrop-filter:blur(10px) saturate(1.1);border-bottom:1px solid var(--bd);transition:background var(--dur-n),border-color var(--dur-n)}
+.tbi{display:flex;align-items:center;gap:var(--sp-3);height:64px}
+.brand{display:flex;align-items:center;gap:9px;min-width:0}
+.logo{font-size:var(--fs-hero);line-height:1}
+.bt{font-size:var(--fs-small);font-weight:800;white-space:nowrap}
+.bs{font-size:var(--fs-micro);color:var(--mu);margin-top:1px;white-space:nowrap}
+.tabs{display:flex;gap:3px;background:var(--bg);padding:4px;border-radius:var(--r-md);margin-left:auto;overflow-x:auto}
+.tab{border:0;background:transparent;padding:7px 13px;border-radius:var(--r-xs);font-size:var(--fs-small);color:var(--tx2);cursor:pointer;font-weight:500;white-space:nowrap;transition:background var(--dur-n) var(--ease),color var(--dur-n) var(--ease)}
+.tab:hover{background:rgba(var(--pr),.09)}
+.tab.active{background:rgba(var(--pr),.15);color:var(--p);font-weight:800}
+.ta{display:flex;gap:var(--sp-2);align-items:center}
+#themeSelect{width:auto;min-width:120px;padding:6px 10px;font-size:var(--fs-micro);border-radius:var(--r-sm);background:var(--bg);border:1px solid var(--bd);color:var(--tx2);cursor:pointer;transition:border-color var(--dur-n) var(--ease),box-shadow var(--dur-n) var(--ease),color var(--dur-n)}
+#themeSelect:hover{border-color:rgba(var(--pr),.5)}
+#themeSelect:focus{box-shadow:0 0 0 3px rgba(var(--pr),.13)}
+main{padding:var(--sp-4) 0 70px}
+.view{display:none}
+.view.active{display:block;animation:viewIn var(--dur-s) var(--ease)}
+@keyframes viewIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+/* ---------- 卡片基底 ---------- */
+.card{background:linear-gradient(180deg,var(--card),var(--card2));border:1px solid var(--bd);border-radius:var(--r-lg);box-shadow:var(--sh);padding:var(--sp-4);transition:border-color var(--dur-n) var(--ease),box-shadow var(--dur-n) var(--ease)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:1px solid var(--bd);background:var(--card);color:var(--tx2);padding:8px 14px;border-radius:var(--r-sm);font-size:var(--fs-small);cursor:pointer;font-weight:500;white-space:nowrap;transition:transform var(--dur-f) var(--ease),border-color var(--dur-n) var(--ease),color var(--dur-n) var(--ease),background var(--dur-n) var(--ease),filter var(--dur-f) var(--ease),opacity var(--dur-f)}
+.btn:hover{border-color:rgba(var(--pr),.55);color:var(--p);transform:translateY(-1px)}
+.btn:active{transform:translateY(0);opacity:.92}
+.btn.p{background:var(--pgrad,var(--p));border-color:transparent;color:#fff;box-shadow:0 4px 14px rgba(var(--pr),.3),inset 0 1px 0 rgba(255,255,255,.18)}
+.btn.p:hover{filter:brightness(1.06);color:#fff}
+.btn.p:active{filter:brightness(.96)}
+.btn.d:hover{border-color:var(--danger);color:var(--danger)}
+.btn.s{padding:5px 10px;font-size:var(--fs-micro);border-radius:var(--r-xs)}
+.btn.g{background:transparent}
+.btn:disabled{opacity:.45;cursor:not-allowed;transform:none!important;filter:none!important}
+.ib{border:1px solid var(--bd);background:var(--card);color:var(--tx2);width:36px;height:36px;border-radius:var(--r-sm);cursor:pointer;font-size:15px;display:grid;place-items:center;transition:background var(--dur-n) var(--ease),border-color var(--dur-n) var(--ease),color var(--dur-n) var(--ease),transform var(--dur-f) var(--ease)}
+.ib:hover{border-color:rgba(var(--pr),.55);color:var(--p);background:rgba(var(--pr),.08)}
+.ib:active{transform:scale(.94)}
+.ib.sm{width:28px;height:28px;font-size:12px;border-radius:var(--r-xs)}
+.ib.xs{width:26px;height:26px;font-size:10.5px;border-radius:7px;border-color:transparent;background:transparent;min-width:26px;min-height:26px}
+.ib.xs:hover{background:rgba(var(--pr),.13)}
+input,textarea,select{width:100%;background:var(--bg);color:var(--tx);border:1px solid var(--bd);border-radius:var(--r-sm);padding:9px 11px;font-size:var(--fs-body);outline:none;transition:border-color var(--dur-n) var(--ease),box-shadow var(--dur-n) var(--ease),background var(--dur-n) var(--ease)}
+input::placeholder,textarea::placeholder{color:var(--mu);opacity:.85}
+input:hover,textarea:hover,select:hover{border-color:rgba(var(--pr),.4)}
+input:focus,textarea:focus,select:focus{border-color:var(--p);box-shadow:0 0 0 3px rgba(var(--pr),.14);background:var(--card)}
+textarea{resize:vertical;line-height:1.6}
+label.f{display:block;margin-bottom:var(--sp-3)}
+label.f>span{display:block;font-size:var(--fs-micro);color:var(--tx2);font-weight:700;margin-bottom:5px}
+.empty{position:relative;color:var(--mu);font-size:var(--fs-small);text-align:center;padding:var(--sp-8) var(--sp-4);border:1.5px dashed rgba(var(--pr),.35);border-radius:var(--r-md);background:rgba(var(--pr),.045);line-height:1.75;animation:viewIn var(--dur-s) var(--ease)}
+.empty::before{content:"🗂️";display:block;font-size:26px;margin-bottom:var(--sp-2);opacity:.75}
+.ct{display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--sp-3);gap:var(--sp-2)}
+.ct h3{margin:0;font-size:var(--fs-small);font-weight:800;display:flex;align-items:center;gap:6px}
+.chip{border:1px solid var(--bd);background:var(--card);color:var(--tx2);padding:6px 13px;border-radius:var(--r-pill);font-size:var(--fs-small);cursor:pointer;font-weight:600;transition:background var(--dur-n) var(--ease),border-color var(--dur-n) var(--ease),color var(--dur-n) var(--ease),transform var(--dur-f) var(--ease)}
+.chip:hover{border-color:rgba(var(--pr),.5);color:var(--p);transform:translateY(-1px)}
+.chip.active{background:var(--p);border-color:var(--p);color:#fff}
+.tag{display:inline-block;font-size:10px;padding:2.5px 8px;border-radius:var(--r-xs);background:rgba(var(--pr),.12);color:var(--p);font-weight:700;cursor:pointer;transition:background var(--dur-f) var(--ease),transform var(--dur-f) var(--ease)}
+.tag:hover{background:rgba(var(--pr),.22);transform:translateY(-1px)}
+.tag.g{background:var(--bg);color:var(--mu);cursor:default}
+.tag.g:hover{transform:none}
+.badge{display:inline-block;font-size:10px;padding:2.5px 8px;border-radius:var(--r-xs);font-weight:800}
+.badge.b{background:rgba(var(--pr),.14);color:var(--p)}
+.badge.c{background:rgba(var(--ok),.14);color:var(--ok)}
+.badge.copy{background:rgba(var(--purple),.16);color:var(--purple)}
+.toast{position:fixed;left:50%;bottom:30px;transform:translate(-50%,24px);background:var(--tx);color:var(--card);padding:12px 22px;border-radius:16px;font-size:var(--fs-small);font-weight:700;opacity:0;pointer-events:none;transition:transform var(--dur-n) var(--ease),opacity var(--dur-n) var(--ease);z-index:var(--z-toast);max-width:86vw;text-align:center;box-shadow:var(--shl)}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+
+/* ---------- 首页 ---------- */
+.home-grid{display:grid;grid-template-columns:1fr 340px;gap:var(--sp-3);align-items:start}
+.statrow{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--sp-3);margin-bottom:var(--sp-3)}
+.stat{position:relative;overflow:hidden;background:linear-gradient(160deg,var(--card),var(--card2));border:1px solid var(--bd);border-radius:var(--r-md);padding:var(--sp-3) var(--sp-4);box-shadow:var(--sh);transition:transform var(--dur-n) var(--ease),box-shadow var(--dur-n) var(--ease),border-color var(--dur-n) var(--ease)}
+.stat::after{content:"";position:absolute;inset:0;background:radial-gradient(120px 60px at 85% 0%,rgba(var(--pr),.1),transparent 70%);pointer-events:none}
+.stat:hover{transform:translateY(-2px);box-shadow:var(--shl)}
+.stat b{display:block;font-size:22px;color:var(--p);font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+.stat span{display:block;font-size:var(--fs-micro);color:var(--mu);margin-top:3px}
+.todo-item{display:flex;align-items:center;gap:9px;padding:8px 6px;border-radius:var(--r-xs);transition:background var(--dur-f) var(--ease)}
+.todo-item:hover{background:rgba(var(--pr),.055)}
+.todo-item input[type=checkbox]{width:17px;height:17px;accent-color:var(--p);cursor:pointer;flex:none;transition:transform var(--dur-f) var(--ease)}
+.todo-item input[type=checkbox]:active{transform:scale(.85)}
+.todo-item .tt{flex:1;font-size:var(--fs-body);line-height:1.55;word-break:break-word;transition:color var(--dur-f) var(--ease),opacity var(--dur-f) var(--ease)}
+.todo-item.done .tt{text-decoration:line-through;text-decoration-color:rgba(var(--pr),.55);text-decoration-thickness:1.5px;color:var(--mu);opacity:.75}
+.todo-item .meta{font-size:10.5px;color:var(--mu);flex:none}
+.links{display:flex;flex-direction:column;gap:var(--sp-2)}
+.linkcard{display:flex;align-items:center;gap:11px;padding:13px 15px;border:1px solid var(--bd);border-radius:var(--r-md);background:linear-gradient(160deg,var(--card),var(--card2));cursor:pointer;transition:transform var(--dur-n) var(--ease),border-color var(--dur-n) var(--ease),box-shadow var(--dur-n) var(--ease);text-decoration:none;color:var(--tx)}
+.linkcard:hover{border-color:rgba(var(--pr),.5);transform:translateY(-2px);box-shadow:var(--shl)}
+.linkcard .li{font-size:20px;line-height:1}
+.linkcard .lt{font-size:var(--fs-body);font-weight:800}
+.linkcard .ld{font-size:var(--fs-micro);color:var(--mu);margin-top:2px;line-height:1.6}
+.progress{height:8px;border-radius:var(--r-pill);background:var(--bd);overflow:hidden;margin:10px 0 4px}
+.progress i{display:block;height:100%;border-radius:var(--r-pill);background:linear-gradient(90deg,var(--p),rgba(var(--pr),.55));box-shadow:0 0 8px rgba(var(--pr),.45);transition:width var(--dur-s) var(--ease)}
+
+/* ---------- 技能卡片库 ---------- */
+.shd{margin-bottom:var(--sp-3)}
+.shd h2{margin:0 0 5px;font-size:var(--fs-page-h2);font-weight:800;letter-spacing:.01em}
+.shd p{margin:0;font-size:var(--fs-small);color:var(--mu);line-height:1.7}
+.tb{display:flex;gap:var(--sp-2);flex-wrap:wrap;align-items:center;margin-bottom:var(--sp-3)}
+.sb{position:relative;flex:1;min-width:180px}
+.sb input{padding-left:32px}
+.sb .si{position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:13px;color:var(--mu);pointer-events:none}
+.cats{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:var(--sp-3)}
+.sgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:var(--sp-3)}
+.sc{position:relative;display:flex;flex-direction:column;overflow:hidden;background:linear-gradient(165deg,var(--card),var(--card2));border:1px solid var(--bd);border-radius:var(--r-md);padding:var(--sp-3);cursor:pointer;box-shadow:var(--sh);transition:transform var(--dur-n) var(--ease),box-shadow var(--dur-n) var(--ease),border-color var(--dur-n) var(--ease)}
+.sc::after{content:"";position:absolute;inset:0;border-radius:var(--r-md);border:1.5px solid transparent;transition:border-color var(--dur-n) var(--ease);pointer-events:none}
+.sc:hover{transform:translateY(-4px) scale(1.01);box-shadow:var(--shl)}
+.sc:hover::after{border-color:rgba(var(--pr),.45)}
+.sci{font-size:22px;line-height:1;margin-bottom:var(--sp-2)}
+.scn{font-size:var(--fs-card-title);font-weight:800;margin-bottom:5px;line-height:1.4}
+.scd{font-size:var(--fs-micro);color:var(--mu);line-height:1.65;flex:1;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.sct{display:flex;gap:4px;flex-wrap:wrap;margin-top:9px}
+.scf{display:flex;align-items:center;gap:9px;margin-top:10px;font-size:10.5px;color:var(--mu);font-variant-numeric:tabular-nums}
+.scops{display:flex;gap:5px;margin-top:10px;flex-wrap:wrap}
+
+/* ---------- 抽屉 ---------- */
+.dmask{position:fixed;inset:0;background:rgba(10,12,20,.45);backdrop-filter:blur(3px) saturate(1.05);-webkit-backdrop-filter:blur(3px) saturate(1.05);z-index:var(--z-mask);opacity:0;pointer-events:none;transition:opacity var(--dur-n) var(--ease)}
+.dmask.show{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;height:100%;width:min(560px,100%);background:var(--card);z-index:var(--z-drawer);transform:translateX(103%);transition:transform var(--dur-s) var(--ease);display:flex;flex-direction:column;box-shadow:-8px 0 44px rgba(0,0,0,.22)}
+.drawer.show{transform:translateX(0)}
+.dh{display:flex;align-items:center;gap:11px;padding:var(--sp-4) var(--sp-4);border-bottom:1px solid var(--bd);flex:none;background:linear-gradient(180deg,var(--card2),transparent)}
+.dhi{font-size:24px;line-height:1}
+.dht{font-size:15px;font-weight:800}
+.dhs{font-size:var(--fs-micro);color:var(--mu);margin-top:2px}
+.dh .ib{margin-left:auto}
+.dbd{padding:var(--sp-4);overflow-y:auto;flex:1}
+.dft{padding:13px var(--sp-4);border-top:1px solid var(--bd);display:flex;gap:9px;flex:none;background:var(--card)}
+.acc{border:1px solid var(--bd);border-radius:var(--r-sm);margin:9px 0;overflow:hidden;background:var(--bg)}
+.acc>summary{cursor:pointer;font-size:var(--fs-micro);font-weight:700;color:var(--tx2);padding:10px 13px;list-style:none;display:flex;align-items:center;gap:6px;transition:background var(--dur-f) var(--ease)}
+.acc>summary:hover{background:rgba(var(--pr),.06)}
+.acc>summary::-webkit-details-marker{display:none}
+.acc>summary::after{content:'▾';margin-left:auto;font-size:10px;transition:transform var(--dur-n) var(--ease)}
+.acc[open]>summary::after{transform:rotate(180deg)}
+.accb{padding:0 13px 13px;font-size:var(--fs-small);line-height:1.75;color:var(--tx2)}
+.accb pre{margin:0;white-space:pre-wrap;word-break:break-word;font-size:var(--fs-micro);line-height:1.75}
+.pacts{display:flex;gap:8px;flex-wrap:wrap;margin-top:15px}
+.pprev{margin-top:13px;background:var(--bg);border:1px solid var(--bd);border-radius:var(--r-sm);padding:13px;font-size:var(--fs-micro);line-height:1.75;white-space:pre-wrap;word-break:break-word;max-height:300px;overflow:auto}
+.draft-tip{font-size:var(--fs-micro);color:var(--warn);background:rgba(var(--warn),.1);border:1px solid rgba(var(--warn),.3);border-radius:var(--r-xs);padding:7px 11px;margin-bottom:var(--sp-3);animation:viewIn var(--dur-n) var(--ease)}
+
+/* ---------- 项目 ---------- */
+.pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:var(--sp-3)}
+.pcard{background:linear-gradient(165deg,var(--card),var(--card2));border:1px solid var(--bd);border-radius:var(--r-md);padding:var(--sp-4);cursor:pointer;box-shadow:var(--sh);transition:transform var(--dur-n) var(--ease),box-shadow var(--dur-n) var(--ease),border-color var(--dur-n) var(--ease)}
+.pcard:hover{transform:translateY(-4px) scale(1.01);box-shadow:var(--shl);border-color:rgba(var(--pr),.45)}
+.pcard h4{margin:0 0 4px;font-size:var(--fs-card-title);font-weight:800}
+.pcard .pinfo{font-size:var(--fs-micro);color:var(--mu);line-height:1.7}
+.branch{border:1px solid var(--bd);border-radius:var(--r-sm);padding:var(--sp-3) 13px;margin-bottom:10px;background:var(--card);transition:opacity var(--dur-n),border-color var(--dur-n)}
+.branch:hover{border-color:rgba(var(--pr),.35)}
+.branch.paused{opacity:.55}
+.branch .bh{display:flex;align-items:center;gap:8px;margin-bottom:7px;flex-wrap:wrap}
+.branch .bn{font-size:var(--fs-body);font-weight:800;flex:1;min-width:80px}
+.branch .bstat{font-size:10px;padding:2.5px 8px;border-radius:var(--r-xs);background:rgba(var(--pr),.12);color:var(--p);font-weight:700}
+.branch .bstat.paused{background:rgba(var(--warn),.13);color:var(--warn)}
+.branch .bstat.archived{background:var(--bg);color:var(--mu)}
+.goalsec{font-size:var(--fs-small);color:var(--tx2);font-weight:800;margin:var(--sp-3) 0 var(--sp-2);display:flex;align-items:center;gap:6px}
+.goallist{display:flex;flex-wrap:wrap;gap:6px}
+.goalitem{font-size:var(--fs-micro);padding:5px 11px;border-radius:var(--r-pill);background:rgba(var(--pr),.1);color:var(--p);font-weight:600;display:inline-flex;align-items:center;gap:6px;transition:background var(--dur-f)}
+.goalitem:hover{background:rgba(var(--pr),.18)}
+.goalitem button{border:0;background:transparent;color:var(--mu);cursor:pointer;font-size:11px;padding:0 2px;min-width:16px;min-height:16px;border-radius:4px}
+.goalitem button:hover{color:var(--danger);background:rgba(var(--danger),.1)}
+
+/* ---------- 日志 ---------- */
+.logitem{border:1px solid var(--bd);border-radius:var(--r-md);padding:var(--sp-3) var(--sp-4);margin-bottom:11px;background:linear-gradient(170deg,var(--card),var(--card2));transition:border-color var(--dur-n),box-shadow var(--dur-n)}
+.logitem:hover{border-color:rgba(var(--pr),.35);box-shadow:var(--sh)}
+.logitem .lh{display:flex;align-items:center;gap:9px;margin-bottom:8px}
+.logitem .lt{font-size:var(--fs-body);font-weight:800}
+.logitem .ld2{font-size:10.5px;color:var(--mu)}
+.logitem .lb{background:rgba(var(--pr),.12);color:var(--p);font-size:10px;padding:2.5px 9px;border-radius:var(--r-xs);font-weight:800}
+.logitem .lb.w{background:rgba(var(--purple),.15);color:var(--purple)}
+.logitem pre{margin:0;white-space:pre-wrap;word-break:break-word;font-size:var(--fs-small);line-height:1.75;color:var(--tx2);font-family:inherit}
+.backrow{display:flex;align-items:center;gap:10px;margin-bottom:var(--sp-3);flex-wrap:wrap}
+
+/* ---------- 模态 ---------- */
+.mmask{position:fixed;inset:0;background:rgba(10,12,20,.5);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);z-index:var(--z-modal);display:none;place-items:center;padding:var(--sp-4)}
+.mmask.show{display:grid}
+.modal{background:var(--card);border-radius:var(--r-lg);width:min(540px,100%);max-height:86vh;overflow-y:auto;box-shadow:0 24px 64px rgba(0,0,0,.32);padding:var(--sp-4);animation:pop var(--dur-n) var(--ease)}
+@keyframes pop{from{opacity:0;transform:scale(.97) translateY(8px)}to{opacity:1;transform:none}}
+.modal h3{margin:0 0 15px;font-size:15px;font-weight:800}
+.macts{display:flex;gap:9px;justify-content:flex-end;margin-top:17px}
+
+
+/* ---------- 黑话词典 ---------- */
+.gg{margin-bottom:var(--sp-3)}
+.gt{font-size:var(--fs-micro);font-weight:800;color:var(--p);margin-bottom:7px;display:flex;align-items:center;gap:6px}
+.gi2{padding:8px 11px;border-radius:var(--r-xs);background:var(--card);border:1px solid var(--bd);margin-bottom:5px;font-size:var(--fs-micro);line-height:1.7;transition:border-color var(--dur-f)}
+.gi2:hover{border-color:rgba(var(--pr),.4)}
+.gi2 b{color:var(--tx);font-weight:800;font-size:var(--fs-small)}
+.gi2 span{color:var(--tx2)}
+.gi2 mark{background:rgba(var(--pr),.22);color:var(--p);border-radius:4px;padding:0 2px}
+.gi2 .gops{float:right;display:flex;gap:3px;margin-left:8px}
+.gi2 .gops button{border:none;background:transparent;color:var(--mu);cursor:pointer;font-size:var(--fs-micro);padding:2px 6px;border-radius:5px;min-width:22px;min-height:22px}
+.gi2 .gops button:hover{background:rgba(var(--pr),.12);color:var(--p)}
+.gi2.mine{border-color:rgba(var(--pr),.45);background:linear-gradient(135deg,rgba(var(--pr),.06),transparent)}
+.gi2.mine b::after{content:'自建';font-size:9px;color:#fff;background:var(--p);border-radius:4px;padding:1px 5px;margin-left:6px;vertical-align:1px}
+#gBody{max-height:48vh;overflow-y:auto}
+/* ---------- 响应式 ---------- */
+@media(max-width:920px){.home-grid{grid-template-columns:1fr}.bs{display:none}.tbi{height:58px;gap:var(--sp-2)}.bt{font-size:var(--fs-micro)}.tab{padding:6px 9px;font-size:var(--fs-micro)}}
+@media(max-width:600px){.wrap{padding:0 var(--sp-3)}.card{padding:var(--sp-3);border-radius:var(--r-md)}.statrow{grid-template-columns:repeat(3,1fr)}}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="wrap tbi">
+    <div class="brand"><span class="logo">🛠️</span><div><div class="bt">Skill 工作台</div><div class="bs" id="brandSub"></div></div></div>
+    <nav class="tabs">
+      <button class="tab active" data-v="home">今日</button>
+      <button class="tab" data-v="skills">技能卡片库</button>
+      <button class="tab" data-v="projects">项目 / 目标</button>
+      <button class="tab" data-v="logs">总结日志</button>
+    </nav>
+    <div class="ta">
+      <button class="ib" id="btnGloss" title="黑话词典">📖</button>
+      <select id="themeSelect" title="主题切换">
+        <option value="lavender">🌸 薰衣草紫</option>
+        <option value="ocean">🌿 海盐青森</option>
+        <option value="midnight">🌙 炭灰午夜</option>
+        <option value="peach">🍑 蜜桃日落</option>
+      </select>
+      <button class="ib" id="btnTheme" title="明暗切换">🌙</button>
+    </div>
+  </div>
+</header>
+<main class="wrap">
+
+<!-- ============ 首页：今日 ============ -->
+<section id="view-home" class="view active">
+  <div class="shd"><h2 id="homeTitle">今天</h2><p>只聚焦今日：待办、进度、打卡。项目和技能的入口在下方。</p></div>
+  <div class="statrow">
+    <div class="stat"><b id="stPct">0%</b><span>今日完成率</span></div>
+    <div class="stat"><b id="stCount">0 / 0</b><span>完成 / 总任务</span></div>
+    <div class="stat"><b id="stStreak">0 天</b><span>连续打卡</span></div>
+  </div>
+  <div class="home-grid">
+    <div>
+      <div class="card">
+        <div class="ct"><h3>✅ 今日待办</h3><span style="font-size:11px;color:var(--mu)" id="todoSummary"></span></div>
+        <div id="todoList"></div>
+        <div style="display:flex;gap:8px;margin-top:11px;flex-wrap:wrap">
+          <input id="newTodo" placeholder="➕ 添加今日待办，回车确认" style="flex:1;min-width:160px">
+          <select id="todoBranch" style="width:auto;min-width:150px"><option value="">无归属（普通待办）</option></select>
+        </div>
+      </div>
+      <div class="card" style="margin-top:15px">
+        <div class="ct"><h3>📝 今日一句话复盘</h3></div>
+        <textarea id="noteArea" rows="3" placeholder="今天完成了什么、卡在哪里、明天第一件事是什么…"></textarea>
+      </div>
+    </div>
+    <aside>
+      <div class="card" style="margin-bottom:15px">
+        <div class="ct"><h3>📌 今日打卡</h3></div>
+        <p style="font-size:12px;color:var(--mu);margin:0 0 11px;line-height:1.7">完成任意待办后即可打卡；打卡记录用于计算连续天数与自动生成每日总结。</p>
+        <button class="btn p" id="btnCheckin" style="width:100%">📍 打卡今天</button>
+        <div id="checkinState" style="font-size:11.5px;color:var(--mu);margin-top:9px;text-align:center"></div>
+      </div>
+      <div class="card">
+        <div class="ct"><h3>🧭 快捷入口</h3></div>
+        <div class="links">
+          <a class="linkcard" data-nav="skills"><span class="li">🗂️</span><div><div class="lt">技能卡片库</div><div class="ld">内置 12 张 + 自建 Skill，搜索、标签、导入导出</div></div></a>
+          <a class="linkcard" data-nav="projects"><span class="li">🎯</span><div><div class="lt">项目 / 大目标</div><div class="ld">秋招、考研、论文… 拆支线、设阶段目标</div></div></a>
+          <a class="linkcard" data-nav="logs"><span class="li">📜</span><div><div class="lt">总结日志</div><div class="ld">每日 / 每周自动生成，复盘用</div></div></a>
+        </div>
+      </div>
+    </aside>
+  </div>
+</section>
+
+<!-- ============ 技能卡片库 ============ -->
+<section id="view-skills" class="view">
+  <div class="shd"><h2>技能卡片库</h2><p>秋招 / 考研 Prompt 技能库：内置 + 自建卡片混合展示，支持 skills.sh JSON 导入、关键词搜索、标签筛选、单张 / 全部导出。全部数据仅存浏览器 localStorage。</p></div>
+  <div class="tb">
+    <div class="sb"><span class="si">🔍</span><input id="sSearch" placeholder="搜标题 / 描述 / 标签 / 关键词…"></div>
+    <select id="sSort" style="width:auto;min-width:112px"><option value="recent">最近更新</option><option value="hot">使用最多</option><option value="name">按名称</option></select>
+    <button class="btn s p" id="btnNewSkill">＋ 新增 Skill</button>
+    <button class="btn s" id="btnImpSkill">⬆ 导入 JSON</button>
+    <button class="btn s" id="btnExpAll">⬇ 导出全部</button>
+  </div>
+  <div class="cats" id="catTabs"></div>
+  <div class="sgrid" id="sGrid"></div>
+</section>
+
+<!-- ============ 项目 / 目标 ============ -->
+<section id="view-projects" class="view">
+  <div class="shd"><h2>项目 / 大目标</h2><p>每个项目是一个独立大目标（如「2026 秋招上岸」「考研专业课复习」），向下拆成支线模块与待办，互不干扰。支持学习 / 生活 / 创作分类与时间段、无期限两种模式。</p></div>
+  <div class="tb">
+    <button class="btn p" id="btnNewProject">＋ 新建项目</button>
+  </div>
+  <div class="pgrid" id="pGrid"></div>
+</section>
+
+<!-- ============ 项目详情 ============ -->
+<section id="view-project" class="view">
+  <div class="backrow">
+    <button class="btn s" id="btnBackProjects">‹ 返回项目列表</button>
+    <h2 style="margin:0;font-size:17px" id="pdTitle"></h2>
+    <span id="pdMeta" style="font-size:11px;color:var(--mu)"></span>
+  </div>
+  <div id="pdBody"></div>
+</section>
+
+<!-- ============ 日志 ============ -->
+<section id="view-logs" class="view">
+  <div class="shd"><h2>总结日志</h2><p>系统每天 0 点自动生成昨日总结，每周一 0 点自动生成上周总结（打开页面时补生成）。仅供本地复盘。</p></div>
+  <div class="tb">
+    <select id="logFilter" style="width:auto;min-width:120px"><option value="all">全部</option><option value="daily">每日总结</option><option value="weekly">每周总结</option></select>
+  </div>
+  <div id="logList"></div>
+</section>
+
+</main>
+
+<div class="dmask" id="dMask"></div>
+<aside class="drawer" id="drawer"></aside>
+<div class="mmask" id="mMask"><div class="modal" id="mBox"></div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============================================================
+   0. 工具
+============================================================ */
+const $=s=>document.querySelector(s), $$=s=>Array.prototype.slice.call(document.querySelectorAll(s));
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+const pad2=n=>String(n).padStart(2,'0');
+const fmtD=d=>d.getFullYear()+'-'+pad2(d.getMonth()+1)+'-'+pad2(d.getDate());
+const parseD=s=>{const p=s.split('-').map(Number);return new Date(p[0],p[1]-1,p[2])};
+const todayS=()=>fmtD(new Date());
+const sod=d=>new Date(d.getFullYear(),d.getMonth(),d.getDate());
+const dayDiff=(a,b)=>Math.round((sod(a)-sod(b))/864e5);
+const WK=['日','一','二','三','四','五','六'];
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let toastT=null;
+function toast(m){const e=$('#toast');e.textContent=m;e.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>e.classList.remove('show'),2300)}
+function copyT(t){
+  if(navigator.clipboard&&window.isSecureContext){return navigator.clipboard.writeText(t).then(()=>true).catch(()=>fbCopy(t))}
+  return Promise.resolve(fbCopy(t));
+}
+function fbCopy(t){try{const ta=document.createElement('textarea');ta.value=t;ta.style.position='fixed';ta.style.top='-1000px';document.body.appendChild(ta);ta.select();const ok=document.execCommand('copy');document.body.removeChild(ta);return ok}catch(e){return false}}
+function dlJSON(obj,fn){const blob=new Blob([JSON.stringify(obj,null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=fn;document.body.appendChild(a);a.click();document.body.removeChild(a);setTimeout(()=>URL.revokeObjectURL(url),1000)}
+function mondayOf(d){const x=sod(d);const wd=x.getDay()||7;x.setDate(x.getDate()-wd+1);return x}
+function fmtRange(a,b){return fmtD(a)+' ~ '+fmtD(b)}
+/* ============================================================
+   1. 存储
+============================================================ */
+const KEY={
+  mode:'wa_mode',
+  theme:'wa_theme',
+  customSkills:'user_custom_skills',
+  projects:'user_projects',
+  todos:'user_daily_todos',        // {dateStr:[{id,text,done,projectId,branchId}]}
+  notes:'user_daily_notes',        // {dateStr:'text'}
+  checkins:'user_checkin_record', // {dateStr:true}
+  reports:'user_auto_reports',     // [{id,type,date,createdAt,content}]
+  stats:'wa_stats',
+  gloss:'wa_gloss',
+  draft:'skill_form_draft',
+  lastReport:'wa_last_report',
+  lastWeekly:'wa_last_weekly'
+};
+function lj(k,f){try{const r=localStorage.getItem(k);if(!r)return f;const v=JSON.parse(r);return v==null?f:v}catch(e){return f}}
+function sv(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){toast('保存失败：本地存储可能已满，请清理后重试')}}
+let mode=lj(KEY.mode,'light');
+let themeName=lj(KEY.theme,'lavender');
+let customSkills=lj(KEY.customSkills,[]);
+let projects=lj(KEY.projects,[]);
+let todosMap=lj(KEY.todos,{});
+let notesMap=lj(KEY.notes,{});
+let checkins=lj(KEY.checkins,{});
+let reports=lj(KEY.reports,[]);
+let stats=lj(KEY.stats,{});
+let myGloss=lj(KEY.gloss,[]);
+function applyTheme(){
+  document.documentElement.dataset.theme=themeName;
+  document.documentElement.dataset.dim=mode==='dark'?'1':'0';
+  document.documentElement.dataset.mode=mode; /* 兼容旧选择器 */
+  $('#btnTheme').textContent=mode==='dark'?'☀️':'🌙';
+  const ts=$('#themeSelect');if(ts&&ts.value!==themeName)ts.value=themeName;
+}
+/* ============================================================
+   2. 内置 12 张 Skill
+============================================================ */
+const TPL_HEAD=`【输出约束（固定）】
+1. 涉及考试政策、分数线、报名时间、岗位要求、证书规则、时间节点，不确定时必须标注：【信息存在变动风险，请以官方公告为准】，严禁编造；
+2. 不编造不存在的题库、资料链接、机构、内推信息、面经；
+3. 优先输出结构化、可落地的行动方案，多用列表，简洁；
+4. 如果用户档案信息不足，直接列出缺失项，不要自行脑补补充；
+5. 严格围绕用户档案 + 当前提问回答，不要无关发散；
+6. 不要主动拓展额外工具、额外方案，除非用户主动要求；
+7. 输出内容尽量克制，减少冗余长文，方便我转为打卡任务。`;
+const TPL_TAIL=`=== 用户档案区（由当前 Skill 表单自动填充） ===
+{{archiveContent}}
+
+=== 我的问题 ===
+{{userQuestion}}`;
+function buildTpl(sop){let s=TPL_HEAD;if(sop&&sop.trim())s+='\n\n=== 参考流程 / 输出框架 ===\n'+sop.trim();return s+'\n\n'+TPL_TAIL}
+function mk(o){return{id:o.id,title:o.title,icon:o.icon||'✨',cat:o.cat,tags:o.tags||[],keywords:o.keywords||'',description:o.description||'',archiveFields:o.archiveFields||[],promptTemplate:buildTpl(o.sop||''),uploadDate:o.uploadDate||'2026-11-18',builtin:true,source:'built-in'}}
+const BUILTIN=[
+mk({id:'job-scout',cat:'求职',icon:'🎯',title:'岗位侦察 · 秋招/春招',tags:['秋招','岗位筛选','求职'],keywords:'岗位 校招 实习 城市 薪资 匹配 HR',description:'按硬条件过滤真实岗位，输出可投递清单、关键词映射与投递节奏。',archiveFields:[{label:'毕业年份',key:'gradYear'},{label:'学历',key:'degree'},{label:'院校',key:'school'},{label:'专业',key:'major'},{label:'实习经历简述',key:'intern'},{label:'项目经历',key:'project'},{label:'期望薪资',key:'salary'},{label:'意向城市',key:'city'},{label:'岗位方向',key:'direction'},{label:'可到岗时间',key:'available'},{label:'技能栈',key:'skills'},{label:'不接受项',key:'avoid'}],sop:['【岗位筛选硬规则】','- 城市：江浙沪优先；成都/重庆/武汉/广东可收；其他城市仅备选单列。','- 薪资：<8k/月 一律不推；JD 未公开薪资标「未公开-待确认」，不得默认达标。','- 公司：中型及以上规模、主体可查证；警惕「综合管培轮岗方向不定」「合伙创业」「底薪面议绩效上不封顶」。','- 岗位关键词：跨部门协调、数据处理、流程、SOP、台账、合规、交付、验收、整改、报表、口径。','- 每条岗位必须给出：公司主体 / 岗位名 / 城市 / 薪资状态 / 来源渠道 / 截止日期 / 匹配理由。','- 缺链接或信息不全的岗位放进「待核实」区，不进正式清单。','','【心理学背景 → 岗位语言】','- 心理测量 / 实验心理学 / SPSS / R → 测评工具、信效度检验、问卷设计、数据分析报告','- 研究方向经历 → 用户访谈、实验设计、统计分析、研究报告撰写','- 学生会 / 社团 / 项目 → 跨部门协调、里程碑推进、风险台账、SOP 沉淀','- 心理咨询 / 团辅 → 访谈技术、共情倾听、危机识别、保密意识'].join('\n')}),
+mk({id:'resume',cat:'求职',icon:'📄',title:'简历优化',tags:['简历','求职','STAR'],keywords:'简历 改写 经历 STAR 关键词 JD 匹配',description:'按目标 JD 重写经历描述，动词+任务+数据+结果。',archiveFields:[{label:'目标岗位',key:'target'},{label:'目标 JD 原文',key:'jd'},{label:'现有简历要点',key:'current'},{label:'想突出的能力',key:'highlight'},{label:'担心被质疑的点',key:'weak'}],sop:['【简历硬规则】','- 每条经历 = 动词 + 任务 + 数据 + 结果，没有精确数据就用可核实的规模 / 频次替代。','- 删掉「性格开朗」「吃苦耐劳」「学习能力强」这类空话，换成岗位关键词。','- 一页纸优先，倒序排列，最近经历写最多行。','- 输出格式：先给 3 版不同侧重的改法，再逐条给「原句 → 改后句 → 改的理由」。'].join('\n')}),
+mk({id:'interview',cat:'求职',icon:'🎤',title:'面试准备',tags:['面试','STAR','反问'],keywords:'面试 问题 追问 自我介绍 STAR 反问',description:'预测问题 + STAR 答案骨架 + 反问清单。',archiveFields:[{label:'公司 / 岗位',key:'company'},{label:'面试轮次与形式',key:'round'},{label:'岗位 JD',key:'jd'},{label:'我的自我介绍稿',key:'intro'},{label:'最担心被问到的点',key:'worry'},{label:'已准备的内容',key:'prepare'}],sop:['【面试准备输出要求】','- 给出 10 个高概率问题（含 3 个压力追问），每题给 STAR 骨架，留空让我填细节。','- 给一版 60 秒自我介绍（口语化、能背下来）。','- 给 5 个可以在反问环节问的问题，要能体现专业性。','- 标注哪些问题必须提前查公司资料才能答好。'].join('\n')}),
+mk({id:'kaoyan',cat:'考研',icon:'📚',title:'考研规划',tags:['考研','规划','复盘'],keywords:'考研 院校 专业课 政治 英语 计划 阶段 复盘',description:'阶段拆分 + 月周日计划 + 复盘模板。',archiveFields:[{label:'目标院校专业',key:'target'},{label:'考试科目与代码',key:'subjects'},{label:'当前基础',key:'level'},{label:'每日可投入时间',key:'hours'},{label:'目标分数',key:'score'},{label:'考试时间',key:'examDate'},{label:'薄弱科目',key:'weak'}],sop:['【考研规划要求】','- 按「基础—强化—冲刺」三阶段拆分，给每阶段起止月份与验收标准。','- 输出一份可执行的本月周计划表（周一到周日，上午/下午/晚上）。','- 给每周复盘模板（3 个问题即可）。','- 报录比、分数线、参考书目不确定时必须标注以官方公告为准。'].join('\n')}),
+mk({id:'ielts',cat:'语言考试',icon:'🌍',title:'雅思备考',tags:['雅思','英语','留学'],keywords:'雅思 听力 阅读 写作 口语 分数 模考',description:'四项分数拆解 + 每日任务模板 + 模考节奏。',archiveFields:[{label:'目标分数',key:'target'},{label:'考试日期',key:'examDate'},{label:'当前水平',key:'level'},{label:'每日学习时长',key:'hours'},{label:'薄弱单项',key:'weak'},{label:'已用资料',key:'material'},{label:'考试形式',key:'mode'}],sop:['【雅思备考要求】','- 先给四项分数目标拆解（听力/阅读/写作/口语各需多少分才能达标）。','- 给每日任务模板（按我填写的时长设计）。','- 给写作 Task1 / Task2 的通用结构骨架。','- 给模考节奏建议（考前 6 周开始，每周几次）。','- 考试时间、报名、考点信息必须标注以官网为准。'].join('\n')}),
+mk({id:'cet',cat:'语言考试',icon:'📖',title:'四六级',tags:['四六级','英语'],keywords:'四级 六级 听力 阅读 翻译 作文 单词 真题',description:'分数拆解 + 单词与真题节奏。',archiveFields:[{label:'考试时间',key:'examDate'},{label:'目标分数',key:'target'},{label:'当前水平',key:'level'},{label:'薄弱项',key:'weak'},{label:'每日时长',key:'hours'},{label:'已背单词量',key:'words'}],sop:['【四六级备考要求】','- 给分数拆解（听力/阅读/写作翻译各需多少）。','- 给单词背诵节奏（每天多少、怎么滚动复习）。','- 给真题使用节奏（近 10 年真题怎么刷、刷几遍）。','- 给考前 2 周冲刺安排。'].join('\n')}),
+mk({id:'japanese',cat:'语言考试',icon:'🗾',title:'日语学习',tags:['日语','N2','语言'],keywords:'日语 N1 N2 标日 单词 语法 听力',description:'等级目标 + 教材进度 + 每日节奏。',archiveFields:[{label:'目标等级',key:'target'},{label:'考试时间',key:'examDate'},{label:'当前水平',key:'level'},{label:'每日时长',key:'hours'},{label:'用途',key:'purpose'},{label:'在用教材',key:'material'}],sop:['【日语学习要求】','- 按目标等级倒推需要掌握的词汇量、语法条目、听力时长。','- 给每日任务模板（单词/语法/听力/阅读分配）。','- 给考前 8 周冲刺安排。','- 报名时间、考点必须标注以官方公告为准。'].join('\n')}),
+mk({id:'teacher-cert',cat:'考证',icon:'🏫',title:'教师资格证',tags:['教资','笔试','面试'],keywords:'教资 教资证 科目一 科目二 面试 试讲 结构化',description:'笔试科目安排 + 面试准备。',archiveFields:[{label:'学段学科',key:'subject'},{label:'当前阶段',key:'stage'},{label:'考试时间',key:'examDate'},{label:'当前进度',key:'progress'},{label:'每日时长',key:'hours'},{label:'是否已报名',key:'signup'}],sop:['【教资备考要求】','- 给各科目的分值结构与高频考点分布。','- 给每周任务表。','- 面试部分给结构化答题模板与试讲流程。','- 报名、笔试、面试时间必须标注以官方公告为准。'].join('\n')}),
+mk({id:'ncre',cat:'考证',icon:'💻',title:'计算机等级考试',tags:['计算机','二级','Office'],keywords:'计算机二级 MS Office 真题 选择题 操作题',description:'科目选择 + 刷题节奏。',archiveFields:[{label:'科目等级',key:'subject'},{label:'考试时间',key:'examDate'},{label:'当前基础',key:'level'},{label:'每日时长',key:'hours'}],sop:['【计算机等级考试要求】','- 给该科目的题型与分值分布。','- 给刷题节奏（真题几套、怎么练操作题）。','- 给每日任务模板。'].join('\n')}),
+mk({id:'research',cat:'科研论文',icon:'🔬',title:'科研 / 论文',tags:['科研','论文','毕业'],keywords:'论文 文献 实验 数据分析 投稿 小论文 盲审',description:'文献—实验—写作的阶段拆解与里程碑倒排。',archiveFields:[{label:'研究方向',key:'topic'},{label:'当前阶段',key:'stage'},{label:'目标成果',key:'goal'},{label:'截止时间',key:'deadline'},{label:'数据情况',key:'data'},{label:'导师要求',key:'advisor'},{label:'每日可投入时间',key:'hours'}],sop:['【科研推进要求】','- 先判断当前阶段的关键卡点（选题不聚焦 / 文献不足 / 方法不对 / 写作结构散）。','- 给出从现在到截止日的倒排时间表，标出每个里程碑的交付物。','- 给本周可立即执行的三件事。','- 涉及统计方法时说明适用条件与需要检查的前提假设。'].join('\n')}),
+mk({id:'fitness',cat:'生活',icon:'💪',title:'健身 / 减脂',tags:['健身','减脂','饮食'],keywords:'健身 减脂 增肌 训练 饮食 体态 热量',description:'目标拆解 + 每周训练与饮食安排。',archiveFields:[{label:'身高体重',key:'body'},{label:'目标',key:'goal'},{label:'周期',key:'period'},{label:'每周可练次数',key:'freq'},{label:'饮食条件',key:'diet'},{label:'器械条件',key:'gear'},{label:'伤病或限制',key:'injury'}],sop:['【健身减脂要求】','- 给每周训练表（动作、组数、次数、休息日）。','- 给饮食框架（不要求精确到克，给可执行的选择原则）。','- 给 4 周一个周期的评估指标与调整规则。','- 有伤病时必须提示先咨询专业人士。'].join('\n')}),
+mk({id:'driving',cat:'生活',icon:'🚗',title:'驾照',tags:['驾照','科二','科三'],keywords:'驾照 C1 C2 科目一 科目二 科目三 练车',description:'科目进度 + 每周练车安排。',archiveFields:[{label:'报考类型',key:'type'},{label:'所在城市',key:'city'},{label:'当前进度',key:'progress'},{label:'每周可练时间',key:'time'},{label:'目标拿证时间',key:'target'}],sop:['【驾照进度要求】','- 按剩余科目倒排时间表。','- 给每个科目的练习重点与常见挂科点。','- 给每周练车安排建议。'].join('\n')})
+];
+function allSkills(){return BUILTIN.concat(customSkills)}
+function getSkill(id){return allSkills().find(s=>s.id===id)}
+function getStat(id){return stats[id]||{useCount:0}}
+function bumpStat(id){if(!stats[id])stats[id]={useCount:0};stats[id].useCount++;stats[id].lastUsed=todayS();sv(KEY.stats,stats)}
+/* ============================================================
+   3. 首页：今日待办 / 打卡 / 统计
+============================================================ */
+function todosOf(ds){return todosMap[ds]||[]}
+function ensureTodos(ds){if(!todosMap[ds])todosMap[ds]=[];return todosMap[ds]}
+function activeBranchOptions(){
+  const opts=[];
+  projects.filter(p=>!p.archived).forEach(p=>{
+    (p.branches||[]).filter(b=>b.status!=='archived').forEach(b=>{
+      opts.push('<option value="'+p.id+'|'+b.id+'">'+esc(p.name)+' / '+esc(b.name)+'</option>');
+    });
+  });
+  return opts.join('');
+}
+function renderHome(){
+  const d=new Date();
+  $('#homeTitle').textContent=(d.getMonth()+1)+'月'+d.getDate()+'日 周'+WK[d.getDay()]+' · 今天';
+  $('#brandSub').textContent=d.getFullYear()+'年'+(d.getMonth()+1)+'月'+d.getDate()+'日 周'+WK[d.getDay()];
+  const t=todayS();
+  const list=todosOf(t);
+  const done=list.filter(x=>x.done).length;
+  const pct=list.length?Math.round(done/list.length*100):0;
+  $('#stPct').textContent=pct+'%';
+  $('#stCount').textContent=done+' / '+list.length;
+  $('#todoSummary').textContent=list.length?('共 '+list.length+' 项，完成 '+done+' 项 · 点击展开勾选'):'';
+  const box=$('#todoList');
+  if(!list.length){box.innerHTML='<div class="empty">今天还没有待办，在下面输入框添加 👇<br>也可以去「项目 / 目标」把支线任务拆细。</div>'}
+  else{
+    box.innerHTML=list.map(x=>{
+      const meta=x.projectId?(findBranch(x.projectId,x.branchId)?esc(findBranch(x.projectId,x.branchId).pName)+' / '+esc(findBranch(x.projectId,x.branchId).bName):''):'';
+      return '<div class="todo-item '+(x.done?'done':'')+'" data-tid="'+x.id+'">'+
+        '<input type="checkbox" data-act="toggle" '+(x.done?'checked':'')+'>'+
+        '<span class="tt">'+esc(x.text)+'</span>'+
+        (meta?'<span class="meta">'+meta+'</span>':'')+
+        '<button class="ib xs" data-act="del" title="删除">✕</button></div>';
+    }).join('');
+  }
+  $('#todoBranch').innerHTML='<option value="">无归属（普通待办）</option>'+activeBranchOptions();
+  // 打卡
+  const ck=checkins[t];
+  $('#checkinState').textContent=ck?'✅ 今天已打卡':'今天还未打卡';
+  $('#btnCheckin').disabled=!!ck;
+  $('#btnCheckin').textContent=ck?'✅ 已打卡':'📍 打卡今天';
+  // 连续天数
+  let n=0,cur=sod(new Date());
+  if(!checkins[fmtD(cur)])cur.setDate(cur.getDate()-1);
+  for(let g=0;g<3650;g++){if(!checkins[fmtD(cur)])break;n++;cur.setDate(cur.getDate()-1)}
+  $('#stStreak').textContent=n+' 天';
+  // 复盘
+  $('#noteArea').value=notesMap[t]||'';
+}
+function findBranch(pid,bid){
+  const p=projects.find(x=>x.id===pid);if(!p)return null;
+  const b=(p.branches||[]).find(x=>x.id===bid);if(!b)return null;
+  return{pName:p.name,bName:b.name};
+}
+/* ============================================================
+   4. 自动报告
+============================================================ */
+function genDailyReport(ds){
+  const list=todosMap[ds]||[];
+  const done=list.filter(x=>x.done),undone=list.filter(x=>!x.done);
+  const ck=checkins[ds]?'已打卡 ✅':'未打卡';
+  const note=(notesMap[ds]||'').trim();
+  const byProj={};
+  list.forEach(x=>{if(x.projectId){const f=findBranch(x.projectId,x.branchId);const k=f?f.pName+' / '+f.bName:'（未知支线）';byProj[k]=byProj[k]||{t:0,d:0};byProj[k].t++;if(x.done)byProj[k].d++}});
+  let s='📅 '+ds+' 每日总结\n';
+  s+='打卡状态：'+ck+'\n';
+  s+='待办完成：'+done.length+' / '+list.length+(list.length?'（'+Math.round(done.length/list.length*100)+'%）':'')+'\n\n';
+  if(done.length){s+='✅ 已完成：\n'+done.map(x=>'  · '+x.text).join('\n')+'\n\n'}
+  if(undone.length){s+='⏳ 未完成（顺延建议）：\n'+undone.map(x=>'  · '+x.text).join('\n')+'\n\n'}
+  const ks=Object.keys(byProj);
+  if(ks.length){s+='📌 各支线进展：\n'+ks.map(k=>'  · '+k+'：'+byProj[k].d+'/'+byProj[k].t).join('\n')+'\n\n'}
+  if(note){s+='📝 当日复盘：\n'+note+'\n\n'}
+  s+='💡 明日建议：优先处理「未完成」列表第一项，从最小一步开始。';
+  return s;
+}
+function genWeeklyReport(weekStart){
+  const end=sod(weekStart);end.setDate(end.getDate()+6);
+  let lines=[],totT=0,totD=0,ckDays=0;
+  for(let i=0;i<7;i++){
+    const d=new Date(weekStart);d.setDate(weekStart.getDate()+i);
+    const ds=fmtD(d),list=todosMap[ds]||[];
+    const dn=list.filter(x=>x.done).length;
+    totT+=list.length;totD+=dn;if(checkins[ds])ckDays++;
+    lines.push('  · '+ds+'（周'+WK[d.getDay()]+'）：'+dn+'/'+list.length+(checkins[ds]?' · 已打卡':''));
+  }
+  let s='🗓️ 周总结（'+fmtRange(weekStart,end)+'）\n';
+  s+='打卡：'+ckDays+' / 7 天\n';
+  s+='待办完成：'+totD+' / '+totT+(totT?'（'+Math.round(totD/totT*100)+'%）':'')+'\n\n';
+  s+='📋 每日明细：\n'+lines.join('\n')+'\n\n';
+  // 项目维度
+  const byProj={};
+  for(let i=0;i<7;i++){const d=new Date(weekStart);d.setDate(weekStart.getDate()+i);const ds=fmtD(d);
+    (todosMap[ds]||[]).forEach(x=>{if(x.projectId){const f=findBranch(x.projectId,x.branchId);const k=f?f.pName:'（未知项目）';byProj[k]=byProj[k]||{t:0,d:0};byProj[k].t++;if(x.done)byProj[k].d++}})}
+  const ks=Object.keys(byProj);
+  if(ks.length){s+='🎯 各项目进展：\n'+ks.map(k=>'  · '+k+'：'+byProj[k].d+'/'+byProj[k].t).join('\n')+'\n\n'}
+  s+='💡 复盘三问：\n  1. 本周推进最快的是哪条支线？为什么？\n  2. 哪件事拖延了，卡点是启动难还是任务太大？\n  3. 下周只做一件最重要的事，是哪件？';
+  return s;
+}
+function runAutoReports(){
+  const t=todayS();
+  let last=lj(KEY.lastReport,'');
+  if(last!==t){
+    // 为上次报告日（即昨天）补生成
+    if(last){reports.unshift({id:uid(),type:'daily',date:last,createdAt:Date.now(),content:genDailyReport(last)})}
+    sv(KEY.lastReport,t);
+  }
+  // 每周一：为上周生成周总结
+  const thisMon=fmtD(mondayOf(new Date()));
+  let lastW=lj(KEY.lastWeekly,'');
+  if(thisMon!==lastW){
+    if(lastW){
+      const ws=parseD(lastW);
+      reports.unshift({id:uid(),type:'weekly',date:fmtRange(ws,new Date(ws.getTime()+6*864e5)),createdAt:Date.now(),content:genWeeklyReport(ws)});
+    }
+    sv(KEY.lastWeekly,thisMon);
+  }
+  reports.sort((a,b)=>b.createdAt-a.createdAt);
+  if(reports.length>200)reports.length=200;
+  sv(KEY.reports,reports);
+}
+function renderLogs(){
+  const f=$('#logFilter').value;
+  const list=reports.filter(r=>f==='all'||r.type===f);
+  const box=$('#logList');
+  if(!list.length){box.innerHTML='<div class="empty">还没有总结日志。每天 0 点自动生成昨日总结，每周一 0 点生成上周总结（打开页面时补生成）。</div>';return}
+  box.innerHTML=list.map(r=>
+    '<div class="logitem"><div class="lh"><span class="lt">'+(r.type==='daily'?'📅 每日总结':'🗓️ 每周总结')+'</span>'+
+    '<span class="lb '+(r.type==='weekly'?'w':'')+'">'+(r.type==='daily'?esc(r.date):esc(r.date))+'</span>'+
+    '<span class="ld2">生成于 '+new Date(r.createdAt).toLocaleString('zh-CN')+'</span>'+
+    '<button class="ib xs" data-act="copy-log" data-lid="'+r.id+'" title="复制" style="margin-left:auto">📋</button>'+
+    '<button class="ib xs" data-act="del-log" data-lid="'+r.id+'" title="删除">✕</button></div>'+
+    '<pre>'+esc(r.content)+'</pre></div>'
+  ).join('');
+}
+/* ============================================================
+   5. Skill 列表
+============================================================ */
+let wb={cat:'全部',q:'',sort:'recent',sT:null};
+function renderCatTabs(){
+  const cats=['全部'];allSkills().forEach(s=>{if(!cats.includes(s.cat))cats.push(s.cat)});
+  $('#catTabs').innerHTML=cats.map(c=>'<button class="cat chip '+(c===wb.cat?'active':'')+'" data-cat="'+esc(c)+'">'+esc(c)+'</button>').join('');
+}
+function filteredSkills(){
+  let list=allSkills().slice();
+  if(wb.cat!=='全部')list=list.filter(s=>s.cat===wb.cat);
+  const q=wb.q.trim().toLowerCase();
+  if(q)list=list.filter(s=>[s.title,s.description,s.keywords,(s.tags||[]).join(' ')].join(' ').toLowerCase().indexOf(q)>=0);
+  if(wb.sort==='hot')list.sort((a,b)=>(getStat(b.id).useCount||0)-(getStat(a.id).useCount||0));
+  else if(wb.sort==='name')list.sort((a,b)=>a.title.localeCompare(b.title,'zh'));
+  else list.sort((a,b)=>String(b.uploadDate||'').localeCompare(String(a.uploadDate||'')));
+  return list;
+}
+function srcBadge(s){
+  if(s.builtin)return '<span class="badge b">官方内置</span>';
+  if(s.source==='copy-builtin'||s.source==='skills.sh')return '<span class="badge copy">'+(s.source==='skills.sh'?'skills.sh 导入':'内置副本')+'</span>';
+  return '<span class="badge c">用户自建</span>';
+}
+function renderSkillGrid(){
+  const list=filteredSkills();
+  const grid=$('#sGrid');
+  if(!list.length){grid.innerHTML='<div class="empty" style="grid-column:1/-1">还没有技能卡片，点击上方「＋ 新增 Skill」或「⬆ 导入 JSON」创建。</div>';return}
+  grid.innerHTML=list.map(s=>{
+    const st=getStat(s.id);
+    const tags=(s.tags||[]).slice(0,3).map(t=>'<span class="tag" data-tag="'+esc(t)+'">'+esc(t)+'</span>').join('');
+    return '<div class="sc" data-sid="'+s.id+'">'+
+      '<div style="display:flex;align-items:center;gap:7px;margin-bottom:8px"><span class="sci" style="margin:0">'+esc(s.icon||'✨')+'</span>'+srcBadge(s)+'</div>'+
+      '<div class="scn">'+esc(s.title)+'</div>'+
+      '<div class="scd">'+esc(s.description||'')+'</div>'+
+      '<div class="sct"><span class="tag g">'+esc(s.cat)+'</span>'+tags+'</div>'+
+      '<div class="scf"><span>🔥 '+(st.useCount||0)+' 次使用</span><span style="margin-left:auto">'+esc(s.uploadDate||'')+'</span></div>'+
+      '<div class="scops">'+
+        '<button class="btn s" data-act="use" data-sid="'+s.id+'">📝 填写并复制</button>'+
+        '<button class="btn s" data-act="edit" data-sid="'+s.id+'">✏️ 编辑</button>'+
+        '<button class="btn s" data-act="exp" data-sid="'+s.id+'">⬇ 导出</button>'+
+        (!s.builtin?'<button class="btn s d" data-act="del" data-sid="'+s.id+'">🗑</button>':'')+
+      '</div></div>';
+  }).join('');
+}
+function renderSkills(){renderCatTabs();renderSkillGrid()}
+/* ============================================================
+   6. Skill 使用抽屉（档案填写 + 复制 Prompt）
+============================================================ */
+const skillArchives=lj('wa_skill_archives',{});
+function getSkillArch(sid){if(!skillArchives[sid])skillArchives[sid]={};return skillArchives[sid]}
+function openSkillUse(sid){
+  const skill=getSkill(sid);if(!skill)return;
+  const arch=getSkillArch(sid);
+  const fieldsHTML=(skill.archiveFields||[]).map(f=>{
+    const v=arch[f.key]==null?'':arch[f.key];
+    const isLong=/简述|经历|要求|JD|情况|内容|原文|稿件|要点/.test(f.label);
+    const ctrl=isLong?'<textarea data-key="'+f.key+'" rows="3">'+esc(v)+'</textarea>':'<input type="text" data-key="'+f.key+'" value="'+esc(v)+'">';
+    return '<label class="f"><span>'+esc(f.label)+'</span>'+ctrl+'</label>';
+  }).join('');
+  $('#drawer').innerHTML='<div class="dh"><span class="dhi">'+esc(skill.icon||'✨')+'</span><div><div class="dht">'+esc(skill.title)+'</div><div class="dhs">'+srcBadge(skill)+' · 档案仅保存在本地浏览器</div></div><button class="ib" id="closeDrawer" title="关闭">✕</button></div>'+
+    '<div class="dbd">'+
+    (skill.archiveFields&&skill.archiveFields.length?'<div class="ct"><h3>📋 填写我的档案（可留空）</h3></div><div id="skillFields">'+fieldsHTML+'</div>':'')+
+    '<label class="f" style="margin-top:13px"><span>我这次的问题</span><textarea id="skillQuestion" rows="4" placeholder="例：帮我筛选适合我的岗位，给出投递时间表和简历修改要点">'+esc(arch.__q||'')+'</textarea></label>'+
+    '<details class="acc"><summary>🧩 查看 Prompt 模板</summary><div class="accb"><pre>'+esc(skill.promptTemplate||'')+'</pre></div></details>'+
+    '<div class="pacts"><button class="btn p" id="btnCopyPrompt">📋 生成并复制 Prompt</button><button class="btn" id="btnPreview">👁 预览</button><a class="btn g" href="https://www.doubao.com/chat/" target="_blank" rel="noopener">打开豆包 ↗</a></div>'+
+    '<pre class="pprev" id="promptPreview" hidden></pre></div>';
+  $('#dMask').classList.add('show');$('#drawer').classList.add('show');document.body.style.overflow='hidden';
+  $('#drawer').dataset.sid=sid;
+}
+function closeDrawer(){$('#dMask').classList.remove('show');$('#drawer').classList.remove('show');document.body.style.overflow=''}
+function buildPrompt(skill,arch){
+  const fields=(skill.archiveFields||[]).map(f=>f.label+'：'+(String(arch[f.key]||'').trim()||'（未填写）')).join('\n');
+  const q=String(arch.__q||'').trim()||'请根据以上档案，输出一份可落地、分步骤的行动方案。';
+  let t=skill.promptTemplate||buildTpl('');
+  if(t.indexOf('{{archiveContent}}')>=0||t.indexOf('{{userQuestion}}')>=0){t=t.replace(/\{\{archiveContent\}\}/g,fields).replace(/\{\{userQuestion\}\}/g,q)}
+  else{t+='\n\n=== 用户档案区 ===\n'+fields+'\n\n=== 我的问题 ===\n'+q}
+  return '【当前日期】'+todayS()+'（周'+WK[new Date().getDay()]+'）\n\n'+t;
+}
+/* ============================================================
+   7. Skill 新增 / 编辑（复用抽屉表单）+ 导入适配器
+============================================================ */
+let formMode={mode:'new',id:null};  // new | edit
+function blankForm(){return{title:'',cat:'自定义',icon:'✨',tags:'',keywords:'',description:'',fieldsText:'目标\n当前进度|已做到哪一步\n每日可投入时间|2 小时\n其他补充',sop:''}}
+function openSkillForm(prefill,mode,id){
+  formMode={mode,id};
+  const f=prefill||blankForm();
+  const isEdit=mode==='edit';
+  const draft=!isEdit?lj(KEY.draft,null):null;
+  const v=(draft&&draft.title)?Object.assign({},f,draft):f;
+  if(draft&&draft.title)$('#drawer').innerHTML='';
+  $('#drawer').innerHTML='<div class="dh"><span class="dhi">'+(isEdit?'✏️':'＋')+'</span><div><div class="dht">'+(isEdit?'编辑 Skill':'新增 Skill')+'</div><div class="dhs">'+(isEdit?'保存后覆盖本地记录':'自建卡片保存到 localStorage，刷新不丢失')+'</div></div><button class="ib" id="closeDrawer" title="关闭">✕</button></div>'+
+    '<div class="dbd">'+
+    (draft&&draft.title?'<div class="draft-tip">📝 检测到上次未保存的草稿，已自动回填</div>':'')+
+    '<label class="f"><span>技能名称 *（4-30 字）</span><input id="fTitle" value="'+esc(v.title||'')+'" placeholder="例：简历润色 Prompt"></label>'+
+    '<div style="display:flex;gap:9px"><label class="f" style="flex:1"><span>分类</span><select id="fCat">'+['求职','考研','语言考试','考证','科研论文','生活','自定义'].map(c=>'<option '+(v.cat===c?'selected':'')+'>'+c+'</option>').join('')+'</select></label>'+
+    '<label class="f" style="width:90px"><span>图标</span><input id="fIcon" value="'+esc(v.icon||'✨')+'"></label></div>'+
+    '<label class="f"><span>简短描述（100 字内，展示在卡片上）</span><textarea id="fDesc" rows="2" maxlength="100" placeholder="一句话说明这个技能用来干嘛">'+esc(v.description||'')+'</textarea></label>'+
+    '<label class="f"><span>标签（逗号分隔，最多 8 个）</span><input id="fTags" value="'+esc(v.tags||'')+'" placeholder="秋招, 面试, 复盘"></label>'+
+    '<label class="f"><span>关键词（空格分隔，便于搜索）</span><input id="fKeywords" value="'+esc(v.keywords||'')+'" placeholder="简历 改写 STAR"></label>'+
+    '<label class="f"><span>档案字段（每行一个，格式：字段名|提示）</span><textarea id="fFields" rows="4">'+esc(v.fieldsText||'')+'</textarea></label>'+
+    '<label class="f"><span>参考流程 / 输出框架（可选，会拼进 Prompt）</span><textarea id="fSop" rows="4" placeholder="告诉 AI 按什么步骤、什么标准输出">'+esc(v.sop||'')+'</textarea></label>'+
+    '</div>'+
+    '<div class="dft" style="margin-left:auto;justify-content:flex-end">'+
+    (!isEdit?'<button class="btn" id="fClear">清空表单</button>':'<button class="btn d" id="fDelete">🗑 删除</button>')+
+    '<button class="btn" id="fCancel">取消</button><button class="btn p" id="fSave">保存</button></div>';
+  $('#dMask').classList.add('show');$('#drawer').classList.add('show');document.body.style.overflow='hidden';
+  // 草稿自动缓存（仅新增模式）
+  if(!isEdit){
+    let dT=null;
+    $('#drawer').addEventListener('input',function h(e){
+      if(e.target.closest('.dbd')===null)return;
+      clearTimeout(dT);dT=setTimeout(()=>{
+        sv(KEY.draft,collectForm());
+      },400);
+    });
+  }
+}
+function collectForm(){
+  return{title:$('#fTitle').value,cat:$('#fCat').value,icon:$('#fIcon').value,description:$('#fDesc').value,tags:$('#fTags').value,keywords:$('#fKeywords').value,fieldsText:$('#fFields').value,sop:$('#fSop').value};
+}
+function parseFieldsText(txt){
+  return (txt||'').split('\n').map(l=>l.trim()).filter(Boolean).map((l,i)=>{const p=l.split('|').map(x=>x.trim());return{label:p[0],key:'f'+i,default:p[1]||''}});
+}
+function saveSkillFromForm(){
+  const f=collectForm();
+  const title=f.title.trim();
+  if(!title){toast('⚠️ 技能名称不能为空');return}
+  if(title.length<4||title.length>30){toast('⚠️ 名称需在 4-30 字之间');return}
+  const fields=parseFieldsText(f.fieldsText);
+  if(!fields.length){toast('⚠️ 至少填写一个档案字段');return}
+  const tags=f.tags.split(/[,，]/).map(x=>x.trim()).filter(Boolean).slice(0,8);
+  const obj={
+    id:formMode.mode==='edit'?formMode.id:'cs_'+uid(),
+    title,cat:f.cat,icon:(f.icon||'✨').trim()||'✨',
+    description:f.description.trim(),tags,keywords:f.keywords.trim(),
+    archiveFields:fields,promptTemplate:buildTpl(f.sop||''),
+    uploadDate:todayS(),builtin:false,
+    source:formMode.mode==='edit'?(customSkills.find(x=>x.id===formMode.id)||{}).source||'custom':'custom',
+    updateAt:Date.now()
+  };
+  if(formMode.mode==='edit'){
+    const i=customSkills.findIndex(x=>x.id===formMode.id);
+    if(i>=0)customSkills[i]=obj;
+  }else{
+    customSkills.unshift(obj);
+    localStorage.removeItem(KEY.draft);
+  }
+  sv(KEY.customSkills,customSkills);renderSkills();closeDrawer();
+  toast(formMode.mode==='edit'?'✅ 修改保存成功':'✅ 技能卡片已创建');
+}
+/* skills.sh / 自有格式 适配器 */
+function parseSkillJson(raw){
+  let o;try{o=JSON.parse(raw)}catch(e){throw new Error('JSON 格式错误')}
+  const arr=Array.isArray(o)?o:[o];
+  return arr.map(x=>{
+    if(!x||typeof x!=='object')throw new Error('不是可识别的 Skill 结构');
+    // 自有导出格式
+    if(x.archiveFields&&x.promptTemplate){
+      return{title:x.title,cat:x.cat||'自定义',icon:x.icon||'✨',description:x.description||'',tags:(x.tags||[]).join(','),keywords:x.keywords||'',fieldsText:(x.archiveFields||[]).map(f=>(f.label||'')+(f.default?'|'+f.default:'')).join('\n'),sop:''};
+    }
+    // skills.sh 常见字段
+    const name=x.name||x.title||x.skill_name;
+    if(!name)throw new Error('缺少技能名称字段（name / title）');
+    const desc=x.description||x.desc||x.summary||'';
+    const payload=(typeof x.payload==='string')?x.payload:(typeof x.prompt==='string'?x.prompt:(x.content?JSON.stringify(x.content,null,2):''));
+    const fields=(x.archiveFields&&Array.isArray(x.archiveFields))?x.archiveFields.map(f=>(f.label||f.name||String(f))+'|'+(f.default||f.placeholder||'')).join('\n'):'目标\n当前进度\n其他补充';
+    return{title:String(name).slice(0,30),cat:'自定义',icon:'🧩',description:String(desc).slice(0,100),tags:(x.tags||[]).join(','),keywords:(x.keywords||[]).join(' '),fieldsText:fields,sop:payload?('【参考内容 / 原始 Prompt】\n'+String(payload).slice(0,3000)):'',_source:'skills.sh'};
+  });
+}
+function openImportModal(){
+  $('#mBox').innerHTML='<h3>⬆ 导入 Skill JSON</h3>'+
+    '<p style="font-size:12px;color:var(--mu);margin:0 0 11px;line-height:1.7">支持本工具导出的 Skill JSON，以及 skills.sh 的技能包 JSON（会自动做字段适配）。解析成功后回填到新增表单，确认后再保存。</p>'+
+    '<textarea id="impJson" rows="10" style="font-family:ui-monospace,Menlo,monospace;font-size:11.5px" placeholder=\'粘贴 JSON，例如 skills.sh 的技能定义…\'></textarea>'+
+    '<div class="macts"><button class="btn" id="impCancel">取消</button><button class="btn p" id="impParse">解析并回填表单</button></div>';
+  $('#mMask').classList.add('show');
+  $('#impCancel').onclick=closeModal;
+  $('#impParse').onclick=()=>{
+    try{
+      const list=parseSkillJson($('#impJson').value);
+      closeModal();
+      openSkillForm(list[0],'new',null);
+      if(list[0]._source==='skills.sh')toast('✅ 解析成功（skills.sh 适配），已回填表单');
+      else toast('✅ JSON 解析成功，已回填表单');
+    }catch(e){toast('❌ '+e.message)}
+  };
+}
+function closeModal(){$('#mMask').classList.remove('show');$('#mBox').innerHTML=''}
+function expSkillObj(s){
+  const st=getStat(s.id);
+  return{id:s.id,title:s.title,icon:s.icon,cat:s.cat,tags:s.tags||[],keywords:s.keywords||'',description:s.description||'',uploadDate:s.uploadDate||todayS(),updateAt:Date.now(),promptTemplate:s.promptTemplate||'',archiveFields:s.archiveFields||[],useCount:st.useCount||0,source:s.source||'custom'};
+}
+/* ============================================================
+   8. 项目 / 支线 / 阶段目标
+============================================================ */
+let curProject=null;
+function renderProjects(){
+  const box=$('#pGrid');
+  if(!projects.length){box.innerHTML='<div class="empty" style="grid-column:1/-1">还没有项目。点击「＋ 新建项目」创建一个大目标，例如「2026 秋招上岸」「考研专业课复习」。</div>';return}
+  box.innerHTML=projects.map(p=>{
+    const bs=p.branches||[];
+    const act=bs.filter(b=>b.status==='active').length;
+    let bt=0,bd=0;
+    bs.forEach(b=>(b.todos||[]).forEach(t=>{bt++;if(t.done)bd++}));
+    const timeTxt=p.mode==='range'?('⏳ '+p.start+' ~ '+p.end):'♾️ 无期限持续目标';
+    return '<div class="pcard" data-pid="'+p.id+'">'+
+      '<div style="display:flex;align-items:center;gap:8px;margin-bottom:5px"><h4 style="flex:1">'+esc(p.name)+'</h4><span class="tag g">'+esc(p.cat)+'</span>'+(p.archived?'<span class="badge copy">已归档</span>':'')+'</div>'+
+      '<div class="pinfo">'+timeTxt+'<br>支线 '+bs.length+' 条（进行中 '+act+'）· 待办 '+bd+'/'+bt+'</div>'+
+      '<div class="progress"><i style="width:'+(bt?Math.round(bd/bt*100):0)+'%"></i></div></div>';
+  }).join('');
+}
+function openProjectDetail(pid){
+  const p=projects.find(x=>x.id===pid);if(!p)return;
+  curProject=pid;
+  switchView('project');
+  renderProjectDetail();
+}
+function renderProjectDetail(){
+  const p=projects.find(x=>x.id===curProject);if(!p)return;
+  $('#pdTitle').textContent=p.name;
+  $('#pdMeta').textContent=(p.mode==='range'?p.start+' ~ '+p.end:'无期限')+' · '+p.cat+(p.archived?' · 已归档':'');
+  const bs=p.branches||[];
+  const goalChips=(arr,type)=>arr.map((g,i)=>'<span class="goalitem">'+esc(g)+(type?'<button data-act="del-goal" data-type="'+type+'" data-i="'+i+'">✕</button>':'')+'</span>').join('')||'<span style="font-size:11.5px;color:var(--mu)">未设置</span>';
+  let html='';
+  // 阶段目标
+  html+='<div class="card" style="margin-bottom:15px"><div class="ct"><h3>🎯 阶段目标（提醒性质，日目标次日重置）</h3></div>';
+  ['daily','weekly','monthly'].forEach(tp=>{
+    const lab={daily:'📅 每日目标（当日有效）',weekly:'🗓️ 每周目标（周一重置）',monthly:'📆 每月目标（每月 1 号重置）'}[tp];
+    const arr=(p.goals&&p.goals[tp])||[];
+    html+='<div style="margin-bottom:10px"><div style="font-size:12px;font-weight:800;color:var(--tx2);margin-bottom:6px">'+lab+'</div>'+
+      '<div class="goallist">'+goalChips(arr,tp)+'</div>'+
+      '<div style="display:flex;gap:7px;margin-top:7px"><input data-goalinput="'+tp+'" placeholder="输入后回车添加" style="flex:1;max-width:320px;padding:6px 10px;font-size:12px"></div></div>';
+  });
+  html+='</div>';
+  // 支线
+  html+='<div class="card"><div class="ct"><h3>🧩 支线拆解（'+bs.length+'）</h3><button class="btn s p" id="btnNewBranch">＋ 新建支线</button></div>';
+  if(!bs.length)html+='<div class="empty">还没有支线。一条支线 = 一块模块任务，例如秋招项目下：简历打磨 / 算法刷题 / 面试模拟。</div>';
+  bs.forEach(b=>{
+    const todos=b.todos||[],dn=todos.filter(t=>t.done).length;
+    const stTxt=b.status==='active'?'进行中':(b.status==='paused'?'已暂停':'已归档');
+    html+='<div class="branch '+(b.status==='paused'?'paused':'')+'" data-bid="'+b.id+'">'+
+      '<div class="bh"><span class="bn">'+esc(b.name)+'</span><span class="bstat '+b.status+'">'+stTxt+'</span>'+
+      '<span style="font-size:11px;color:var(--mu)">'+dn+'/'+todos.length+'</span>'+
+      '<button class="btn s" data-act="branch-pause">'+(b.status==='paused'?'▶ 继续':'⏸ 暂停')+'</button>'+
+      '<button class="btn s" data-act="branch-archive">'+(b.status==='archived'?'↩ 恢复':'🗃 归档')+'</button>'+
+      '<button class="btn s d" data-act="branch-del">✕</button></div>'+
+      '<div class="progress" style="margin:4px 0 8px"><i style="width:'+(todos.length?Math.round(dn/todos.length*100):0)+'%"></i></div>'+
+      todos.map(t=>'<div class="todo-item '+(t.done?'done':'')+'" data-tid="'+t.id+'"><input type="checkbox" data-act="btoggle" '+(t.done?'checked':'')+'><span class="tt">'+esc(t.text)+'</span><button class="ib xs" data-act="bdel">✕</button></div>').join('')+
+      '<div style="display:flex;gap:7px;margin-top:8px"><input data-binput placeholder="+ 添加这条支线的待办，回车确认" style="flex:1;padding:6px 10px;font-size:12px">'+
+      '<button class="btn s p" data-act="send-today" title="同时加入今日待办">📌 送今日</button></div></div>';
+  });
+  html+='</div>';
+  $('#pdBody').innerHTML=html;
+}
+function openNewProject(){
+  $('#mBox').innerHTML='<h3>＋ 新建项目（大目标）</h3>'+
+    '<label class="f"><span>项目名称 *</span><input id="npName" placeholder="例：2026 秋招上岸 / 考研专业课复习"></label>'+
+    '<div style="display:flex;gap:9px"><label class="f" style="flex:1"><span>分类</span><select id="npCat"><option>学习</option><option>生活</option><option>创作</option></select></label>'+
+    '<label class="f" style="flex:1"><span>时间模式</span><select id="npMode"><option value="range">时间段目标</option><option value="forever">无期限持续</option></select></label></div>'+
+    '<div id="npDates" style="display:flex;gap:9px"><label class="f" style="flex:1"><span>开始日期</span><input type="date" id="npStart" value="'+todayS()+'"></label><label class="f" style="flex:1"><span>截止日期</span><input type="date" id="npEnd"></label></div>'+
+    '<div class="macts"><button class="btn" id="npCancel">取消</button><button class="btn p" id="npOk">创建</button></div>';
+  $('#mMask').classList.add('show');
+  $('#npMode').onchange=e=>{$('#npDates').style.display=e.target.value==='range'?'flex':'none'};
+  $('#npCancel').onclick=closeModal;
+  $('#npOk').onclick=()=>{
+    const name=$('#npName').value.trim();
+    if(!name){toast('⚠️ 请填写项目名称');return}
+    const mode=$('#npMode').value;
+    if(mode==='range'&&!$('#npEnd').value){toast('⚠️ 请选择截止日期');return}
+    projects.unshift({id:uid(),name,cat:$('#npCat').value,mode,start:mode==='range'?$('#npStart').value:'',end:mode==='range'?$('#npEnd').value:'',branches:[],goals:{daily:[],weekly:[],monthly:[]},createdAt:Date.now(),archived:false});
+    sv(KEY.projects,projects);closeModal();renderProjects();toast('✅ 项目已创建');
+  };
+}
+
+/* ============================================================
+   8.5 黑话词典（求职 / 职场 / AI）
+============================================================ */
+const GLOSS={
+ job:{label:'求职 / 秋招',icon:'💼',terms:[
+  {t:'wlb',d:'work-life balance 的缩写，工作与生活的平衡。常出现在「这家 wlb 不错」的评论里，属于主观评价，建议向在职者核实实际下班时间。'},
+  {t:'年包 / package',d:'年度总现金收入，通常 = 月薪 × 月数 + 年终奖 + 签字费等，一般不含股票期权。看到「年包 30w」要问清是固定部分还是含不确定奖金。'},
+  {t:'画饼',d:'公司在薪资、晋升、期权、转正上给出无法落地的口头承诺。典型话术：「先把项目做起来，明年一定给你调薪」。'},
+  {t:'向上管理',d:'主动管理上级的预期、信息与决策节奏，让上级清楚进度、认可你的价值。核心是信息同步 + 预期管理 + 方案先行。'},
+  {t:'hc',d:'headcount 的缩写，编制 / 招聘名额。「这个岗位还有 hc 吗」= 这个岗位还招人吗。hc 被冻结意味着流程可能随时中止。'},
+  {t:'oc',d:'offer call 的缩写，指 HR 电话通知你通过面试、准备发 offer。注意：oc 是口头的，不等于正式 offer，存在被鸽的风险。'},
+  {t:'泡池子',d:'面试通过但不发正式 offer，把人放进候选池排序等待。常见于大厂，可能等数周甚至数月，期间应继续投递其他公司。'},
+  {t:'k / w',d:'薪资单位。k = 千（1000），w = 万（10000）。「15k」= 月薪 1.5 万；「30w」= 年薪 30 万。注意区分「月薪 k」和「年薪 w」。'},
+  {t:'base',d:'两种含义：① base 地 = 工作常驻地，如「base 杭州」；② base salary = 基本工资，不含奖金补贴。面试时要问清是哪一个。'},
+  {t:'92',d:'指「985 / 211」高校。9 代表 985，2 代表 211。「92 硕」= 985 或 211 硕士。部分公司简历筛选会卡这条。'},
+  {t:'qs',d:'QS 世界大学排名。「qs 前 100」是部分外企、留服落户、人才引进的硬门槛，国内校招中主要影响外企与部分国企。'},
+  {t:'offer',d:'录用通知，分口头（oc）和书面（正式 offer letter）。书面 offer 才具备法律意义上的要约效力，口头随时可能变卦。'},
+  {t:'三方 / 两方',d:'三方协议 = 毕业生、学校、用人单位三方签订的就业协议，涉及档案与派遣，违约通常有违约金；两方协议 = 毕业生与用人单位双方签订，不涉及学校，约束力较弱。'},
+  {t:'双休',d:'每周休息两天（周六、周日）。面试时确认是真双休还是名义双休、周末随时待命。'},
+  {t:'大小周',d:'一周双休、一周单休交替进行。本质是每月多上两天班，计算时薪时要折算进去。'},
+  {t:'+1',d:'指你的直属上级。「+1 人很好」= 直接领导不错；「+2」= 上级的上级。来自组织架构图里向上加一层的说法。'},
+  {t:'大厂',d:'头部大型互联网 / 科技公司，如腾讯、阿里、字节、美团、京东、拼多多等。没有严格名单，属于约定俗成的说法。'},
+  {t:'新一线',d:'第一财经·新一线城市研究所发布的城市分级中的「新一线城市」，常见包括成都、杭州、重庆、武汉、西安、苏州、天津、南京、长沙、郑州、东莞、青岛、沈阳、宁波、昆明等（名单每年微调）。'},
+  {t:'独角兽',d:'估值达到 10 亿美元以上、尚未上市的创业公司。注意：估值不等于盈利，也不等于稳定。'},
+  {t:'oq',d:'over-qualified 的缩写，指资历明显高于岗位要求，HR 担心你留不住或要价太高而拒绝。被 oq 不代表你不够好。'},
+  {t:'绩效',d:'绩效考核结果或系数，直接影响年终奖与晋升。常见分档如 A/B/C 或 3.75/3.5 等，各公司口径不同，需向 HR 确认具体规则。'},
+  {t:'五险一金',d:'五险 = 养老、医疗、失业、工伤、生育保险；一金 = 住房公积金。要问清缴纳基数（按全额工资还是最低基数）和公积金比例。'},
+  {t:'JD',d:'job description 的缩写，岗位描述，包含职责与任职要求。投递前逐条对照，命中率高的关键词要写进简历。'},
+  {t:'hr',d:'human resources 的缩写，人力资源部门 / 人力资源从业者。校招中 HR 通常负责流程推进、薪资沟通与入职手续。'},
+  {t:'hrbp',d:'HR business partner 的缩写，人力资源业务伙伴，派驻到具体业务线，负责该业务线的招聘、绩效、员工关系等，比传统 HR 更贴近业务。'},
+  {t:'tbtc',d:'语境含义不稳定，常见理解是「ToB / ToC」，即面向企业客户与面向个人消费者的两类业务方向。部分群聊中另有用法，遇到请向发帖人确认。'},
+  {t:'bar',d:'招聘门槛 / 筛选标准。「这家 bar 很高」= 学历、经历要求高，简历筛选严格。'},
+  {t:'kpi',d:'key performance indicator 的缩写，关键绩效指标，用于量化考核工作结果。'},
+  {t:'sop',d:'standard operating procedure 的缩写，标准作业流程。把重复性工作写成固定步骤，是简历上很好的关键词（体现流程化能力）。'},
+  {t:'gmv',d:'gross merchandise volume 的缩写，商品交易总额，电商 / 零售行业常用规模指标，含未付款和退货部分。'},
+  {t:'bg',d:'两种含义：① background，指学历与经历背景，如「bg 很好」；② business group，事业群，如「某事业群 bg」。看上下文判断。'},
+  {t:'leader',d:'团队负责人 / 领导者，通常是你汇报的对象或团队的一号位。'},
+  {t:'带教',d:'新人入职后指定的指导人（mentor），负责带你熟悉业务。面试时可以问「有没有固定带教」，这是判断培养体系的重要信号。'},
+  {t:'owner',d:'第一责任人，指对某个项目或事项负总责的人。「你是这个需求的 owner」= 这件事你负责推进到底。'},
+  {t:'轮岗',d:'在多个岗位或部门之间轮换培养，常见于管培生项目。要问清轮岗时长、是否定岗、定岗依据是什么。'},
+  {t:'cv',d:'curriculum vitae 的缩写，即简历。外企和学术场景更常用 CV，国内校招多用「简历」。'},
+  {t:'白菜',d:'校招薪资的最低档，即「白菜价」。与之对应的是 sp、ssp。'},
+  {t:'sp',d:'special offer 的缩写，校招薪资中高于白菜档一档的 offer，通常给到面试表现突出的候选人。'},
+  {t:'ssp',d:'super special offer 的缩写，校招薪资中比 sp 再高一档的 offer，一般给到极少数顶尖候选人。'},
+  {t:'tp',d:'语境含义不稳定，不同群聊中用法差异大（可能指 trainee program、top 档，也可能是笔误）。遇到时请直接向发帖人确认。'},
+  {t:'倒挂',d:'新入职员工薪资高于同级老员工的现象。谈薪时可以此为由争取，但入职后打听同事薪资属于敏感行为。'},
+  {t:'劝退',d:'公司不直接裁员，而是用调岗、降薪、加工作量等方式让员工主动辞职，从而规避赔偿。遇到时注意保留证据。'},
+  {t:'n+1 / 大礼包',d:'裁员补偿的俗称。n = 工作年限对应的月薪补偿月数，+1 = 代通知金。「毕业大礼包」是裁员的自嘲说法。'},
+  {t:'摸鱼',d:'上班时间做与工作无关的事。适度摸鱼是自我调节，长期摸鱼要警惕岗位是否出了问题。'},
+  {t:'润',d:'英文 run 的谐音，指离职、跳槽或出国。「润了」= 走了。使用时多带调侃意味。'},
+  {t:'开奖',d:'等待 offer、谈薪、绩效等结果揭晓的时刻。「等开奖」= 在等消息，期间建议继续推进其他机会。'},
+  {t:'感谢信',d:'拒信的委婉说法，因模板常以「感谢你的投递」开头得名。收到感谢信不代表你不好，只是不匹配。'},
+  {t:'泡池子 / 排序',d:'通过面试但不立刻发 offer，HR 把候选人放进池子按优先级排队。排序靠后可能被拖很久。'},
+  {t:'保底',d:'先于 dream offer 拿到一个能接受的 offer 兜底的策略。有保底后谈判心态会稳很多。'}
+ ]},
+ ai:{label:'AI / 大模型',icon:'🤖',terms:[
+  {t:'skill',d:'技能包。指把一套提示词、流程、约束封装成的可复用能力模块，比如「简历优化 skill」。本质是结构化 prompt + 固定输出规范。'},
+  {t:'llm',d:'large language model 的缩写，大语言模型，如 GPT、豆包、Claude 等，基于海量文本训练、能生成与理解自然语言的模型。'},
+  {t:'具身智能',d:'embodied AI，指拥有物理身体（机器人本体）、能与真实环境交互并从中学习的智能系统，区别于只处理文本图像的纯软件模型。'},
+  {t:'prompt',d:'提示词，你输入给模型的指令文本。结构化 prompt 通常包含：角色、任务、约束、输入资料、输出格式。'},
+  {t:'幻觉',d:'hallucination，模型生成看似合理、流畅但事实上错误或凭空捏造的内容（假文献、假链接、假数据）。防幻觉靠：要求标注不确定、提供原始资料、人工核验。'},
+  {t:'rag',d:'retrieval-augmented generation 的缩写，检索增强生成。先从你的资料库里检索相关片段，再把片段塞进 prompt 让模型基于资料回答，能显著降低幻觉。'},
+  {t:'token',d:'模型处理文本的最小单位，约等于一个词或半个汉字到两个汉字。计费和上下文长度都按 token 计算。'},
+  {t:'上下文窗口',d:'context window，模型单次能「记住」的 token 上限。超出部分会被截断或遗忘，长文档要分段处理。'},
+  {t:'微调',d:'fine-tuning，在预训练模型基础上用特定领域数据继续训练，让模型更贴合某类任务。成本高于写 prompt，适合有大量标注数据的场景。'},
+  {t:'多模态',d:'multimodal，模型能同时处理文本、图像、音频、视频等多种输入输出形式。'},
+  {t:'agent',d:'智能体，能自主规划步骤、调用工具、循环执行直到完成目标的模型系统，区别于一次性问答。'},
+  {t:'mcp',d:'Model Context Protocol，模型上下文协议，一种让模型统一接入外部工具与数据源的开放协议。'},
+  {t:'思维链',d:'chain of thought（CoT），让模型把推理步骤逐步写出来再给结论，通常能提升复杂推理的准确率。'},
+  {t:'few-shot',d:'少样本示例。在 prompt 里给几个「输入→输出」的样例，让模型照着格式回答。不给样例叫 zero-shot。'},
+  {t:'embedding',d:'嵌入，把文本转成向量（一串数字），使语义相近的文本在向量空间里距离更近，用于检索、聚类、去重。'},
+  {t:'温度',d:'temperature，控制输出随机性的参数。越低越稳定保守，越高越发散有创意。做数据整理用低温，做创意用高温。'},
+  {t:'对齐',d:'alignment，让模型的行为符合人类意图与价值观的技术，包括有用性、诚实性、无害性三个方向。'},
+  {t:'越狱',d:'jailbreak，通过特殊话术绕过模型安全限制，让它输出本应拒绝的内容。'},
+  {t:'提示词注入',d:'prompt injection，在输入内容里夹带指令，劫持模型原本的任务。做 RAG 时要防范文档里的恶意指令。'},
+  {t:'蒸馏',d:'distillation，用大模型的输出训练小模型，让小模型以更低成本逼近大模型的效果。'},
+  {t:'涌现',d:'emergence，模型规模达到一定程度后，突然出现小模型不具备的能力（如多步推理）。'},
+  {t:'sota',d:'state of the art 的缩写，当前某任务上的最优水平。'},
+  {t:'开源 / 闭源',d:'开源指模型权重可下载、可本地部署（如 Llama 系列）；闭源指只能通过 API 调用（如 GPT、Claude）。'},
+  {t:'推理模型',d:'专门针对复杂推理优化的模型，回答前会先进行较长的内部思考，速度慢但准确率更高。'},
+  {t:'vibe coding',d:'氛围编程，指主要用自然语言描述需求、让 AI 生成代码、人负责验收和微调的编程方式。适合快速原型，关键系统仍需人工审查。'},
+  {t:'上下文工程',d:'context engineering，围绕「给模型喂什么信息」做设计：筛选资料、控制长度、组织结构，比单纯写 prompt 更系统的做法。'},
+  {t:'工作流',d:'workflow，把 AI 调用拆成多个固定步骤串成流水线，比如「检索→总结→校对→格式化」，比一次性问答更稳定可控。'},
+  {t:'知识库',d:'把个人文档、笔记、资料向量化后供模型检索的产品形态，是 RAG 最常见的落地方式。'},
+  {t:'降智',d:'用户体感术语，指模型版本更新后回答质量变差。官方通常不承认，遇到时可换模型或拆分任务。'},
+  {t:'checkpoint',d:'模型训练过程中的存档点，也指某个具体版本的模型权重文件。'},
+  {t:'system prompt',d:'系统提示词，在对话开始前设定模型角色与行为边界的指令，优先级高于普通用户输入。'}
+ ]},
+ work:{label:'职场通用',icon:'🏢',terms:[
+  {t:'闭环',d:'一件事从提出到落地反馈的完整链条。「形成闭环」= 有始有终、有反馈有验收。简历高频词。'},
+  {t:'台账',d:'记录事项进展的明细表，如「招聘台账」「风险台账」，强调可追溯、可核查。'},
+  {t:'口径',d:'数据统计的标准与定义，如「口径统一」= 各部门对同一指标的定义一致，避免数据打架。'},
+  {t:'里程碑',d:'milestone，项目中的关键节点，通常对应一个可验收的交付物。'},
+  {t:'验收',d:'交付物由需求方确认符合要求的过程，是项目闭环的关键一步。'},
+  {t:'整改',d:'发现问题后按要求修正并留痕的过程，常见于合规、质量、审计场景。'},
+  {t:'复盘',d:'项目或阶段结束后回顾目标、结果、差异与原因，沉淀可复用经验。'},
+  {t:'对齐',d:'多方就目标、口径、分工达成一致。「先对齐一下」= 先开会统一认识。'},
+  {t:'抓手',d:'推动某件事的切入点和着力点，偏务虚的职场用语，常见于汇报。'},
+  {t:'颗粒度',d:'任务或数据的细致程度。「颗粒度太粗」= 不够具体。'},
+  {t:'赋能',d:'通过资源、工具或方法让对方能力提升。职场高频但含义模糊，面试时最好换成具体动作。'},
+  {t:'组织架构',d:'公司内部的部门划分与汇报关系，面试时问清你所在的团队与汇报线。'},
+  {t:'拉通',d:'把相关方拉到一起同步信息、统一认知。「拉通一下」= 开个会对齐，避免各干各的。'},
+  {t:'透传',d:'信息原样传递、不经加工。「把用户反馈透传给研发」= 不改口径直接同步。'},
+  {t:'背锅 / 甩锅',d:'替别人的失误承担责任 / 把自己的责任推给别人。职场生存重点：留痕（邮件、纪要）是最好的防甩锅工具。'},
+  {t:'落地',d:'方案从纸面变成可执行、已执行的动作。「这个想法不落地」= 缺乏执行路径。'},
+  {t:'进 ICU',d:'调侃项目状态濒危、随时可能被砍。「项目在 ICU 里」= 需要紧急抢救。'},
+  {t:'对焦',d:'快速确认双方理解是否一致。「先对焦一下」= 先确认我们在说同一件事。'}
+ ]}
+};
+function glossHTML(keys,filter){
+  const out=[];
+  const f=(filter||'').trim().toLowerCase();
+  keys.forEach(k=>{
+    if(k==='__mine'){
+      const terms=myGloss.filter(t=>!f||t.t.toLowerCase().includes(f)||t.d.toLowerCase().includes(f));
+      if(!terms.length&&f)return;
+      out.push('<div class="gg"><div class="gt">🌱 我的自建'+(terms.length?'（'+terms.length+'）':'')+'</div>'+
+        (terms.length?terms.map(t=>{
+          let d=esc(t.d);
+          if(f){const re=new RegExp('('+f.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')','ig');d=d.replace(re,'<mark>$1</mark>')}
+          return '<div class="gi2 mine"><span class="gops"><button data-ge="'+t.id+'">编辑</button><button data-gd="'+t.id+'">删</button></span><b>'+esc(t.t)+'</b>　<span>'+d+'</span></div>';
+        }).join(''):'<div class="gi2" style="color:var(--mu)">还没有自建词条，点上方「＋ 自建词条」添加你的第一条黑话。</div>')+'</div>');
+      return;
+    }
+    const g=GLOSS[k];if(!g)return;
+    const terms=g.terms.filter(t=>!f||t.t.toLowerCase().includes(f)||t.d.toLowerCase().includes(f));
+    if(!terms.length)return;
+    out.push('<div class="gg"><div class="gt">'+g.icon+' '+esc(g.label)+'（'+terms.length+'）</div>'+
+      terms.map(t=>{
+        let d=esc(t.d);
+        if(f){const re=new RegExp('('+f.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')','ig');d=d.replace(re,'<mark>$1</mark>')}
+        return '<div class="gi2"><b>'+esc(t.t)+'</b>　<span>'+d+'</span></div>';
+      }).join('')+'</div>');
+  });
+  return out.join('')||'<div class="empty">没有匹配的黑话，换个关键词试试</div>';
+}
+function openGloss(){
+  $('#mBox').innerHTML='<h3>📖 黑话词典 <span style="float:right"><button class="btn s p" id="gAdd">＋ 自建词条</button></span></h3>'+
+    '<div id="gForm" style="display:none;background:var(--bg);border:1.5px dashed rgba(var(--pr),.5);border-radius:var(--r-sm);padding:var(--sp-3);margin-bottom:var(--sp-3)">'+
+    '<div style="font-size:var(--fs-micro);font-weight:800;color:var(--p);margin-bottom:9px" id="gfTitle">🌱 添加自建词条</div>'+
+    '<label class="f"><span>词条名称</span><input id="gfT" placeholder="如：闭环 / bar / 泡池子"></label>'+
+    '<label class="f" style="margin-bottom:0"><span>释义</span><textarea id="gfD" rows="3" placeholder="用你自己的话解释它：含义、使用场景、注意事项都可以"></textarea></label>'+
+    '<div style="display:flex;gap:8px;justify-content:flex-end;margin-top:11px"><button class="btn s" id="gfCancel">取消</button><button class="btn s p" id="gfSave">保存词条</button></div></div>'+
+    '<div class="sb" style="margin-bottom:13px"><span class="si">🔍</span><input id="gSearch" placeholder="搜黑话，如 wlb / 年包 / 幻觉 / rag / 你自建的词"></div>'+
+    '<div id="gBody"></div>'+
+    '<div class="macts"><button class="btn p" id="mOk">关闭</button></div>';
+  $('#mMask').classList.add('show');
+  const keys=['__mine'].concat(Object.keys(GLOSS));
+  let editing=null;
+  const refresh=()=>{$('#gBody').innerHTML=glossHTML(keys,$('#gSearch').value)};
+  refresh();
+  $('#gSearch').addEventListener('input',refresh);
+  const closeForm=()=>{$('#gForm').style.display='none';$('#gfT').value='';$('#gfD').value='';editing=null};
+  $('#gAdd').onclick=()=>{editing=null;$('#gfTitle').textContent='🌱 添加自建词条';$('#gfT').value='';$('#gfD').value='';$('#gForm').style.display='block';$('#gfT').focus()};
+  $('#gfCancel').onclick=closeForm;
+  $('#gfSave').onclick=()=>{
+    const t=$('#gfT').value.trim(),d=$('#gfD').value.trim();
+    if(!t){toast('请填写词条名称');return}
+    if(!d){toast('请填写释义');return}
+    const wasEdit=!!editing;
+    if(editing){const it=myGloss.find(x=>x.id===editing);if(it){it.t=t;it.d=d}}
+    else myGloss.unshift({id:uid(),t,d,date:todayS()});
+    sv(KEY.gloss,myGloss);closeForm();refresh();toast(wasEdit?'词条已更新':'已加入「我的自建」');
+  };
+  $('#gBody').addEventListener('click',e=>{
+    const eb=e.target.closest('[data-ge]');
+    if(eb){const it=myGloss.find(x=>x.id===eb.dataset.ge);if(!it)return;editing=it.id;$('#gfTitle').textContent='✏️ 编辑自建词条';$('#gfT').value=it.t;$('#gfD').value=it.d;$('#gForm').style.display='block';$('#mBox').scrollTop=0;return}
+    const db=e.target.closest('[data-gd]');
+    if(db){const it=myGloss.find(x=>x.id===db.dataset.gd);if(!it)return;if(!confirm('删除自建词条「'+it.t+'」？'))return;myGloss=myGloss.filter(x=>x.id!==db.dataset.gd);sv(KEY.gloss,myGloss);refresh();toast('已删除')}
+  });
+  $('#mOk').onclick=closeModal;
+}
+/* ============================================================
+   9. 视图切换
+============================================================ */
+function switchView(v){
+  $$('.tab').forEach(x=>x.classList.toggle('active',x.dataset.v===v||(v==='project'&&x.dataset.v==='projects')));
+  $$('.view').forEach(x=>x.classList.remove('active'));
+  $('#view-'+v).classList.add('active');
+  if(v==='home')renderHome();
+  if(v==='skills')renderSkills();
+  if(v==='projects')renderProjects();
+  if(v==='logs')renderLogs();
+  window.scrollTo({top:0});
+}
+/* ============================================================
+   10. 事件绑定
+============================================================ */
+function bind(){
+  $$('.tab').forEach(t=>t.addEventListener('click',()=>switchView(t.dataset.v)));
+  document.addEventListener('click',e=>{const n=e.target.closest('[data-nav]');if(n)switchView(n.dataset.nav)});
+  $('#btnTheme').addEventListener('click',()=>{mode=mode==='dark'?'light':'dark';sv(KEY.mode,mode);applyTheme()});
+  $('#btnGloss').addEventListener('click',openGloss);
+  $('#themeSelect').addEventListener('change',e=>{themeName=e.target.value;sv(KEY.theme,themeName);applyTheme();toast('已切换主题')});
+  /* 复制类按钮点击后图标临时切换 ✅ 反馈（仅视觉，不动业务） */
+  document.addEventListener('click',e=>{
+    const b=e.target.closest('.btn');if(!b)return;
+    const ic=b.textContent.trim();
+    if(ic.indexOf('📋')===0){b.dataset.ic=1;const old=b.innerHTML;b.innerHTML=b.innerHTML.replace('📋','✅');setTimeout(()=>{if(b.isConnected)b.innerHTML=old},1000)}
+  });
+  /* 首页 */
+  const addTodo=()=>{
+    const v=$('#newTodo').value.trim();if(!v)return;
+    const link=$('#todoBranch').value;
+    let projectId='',branchId='';
+    if(link){const parts=link.split('|');projectId=parts[0];branchId=parts[1]}
+    ensureTodos(todayS()).push({id:uid(),text:v,done:false,projectId,branchId});
+    sv(KEY.todos,todosMap);$('#newTodo').value='';renderHome();toast('已添加今日待办');
+  };
+  $('#newTodo').addEventListener('keydown',e=>{if(e.key==='Enter')addTodo()});
+  $('#todoList').addEventListener('change',e=>{
+    if(!e.target.matches('input[type=checkbox]'))return;
+    const id=e.target.closest('[data-tid]').dataset.tid;
+    const t=ensureTodos(todayS()).find(x=>x.id===id);
+    if(t){t.done=e.target.checked;sv(KEY.todos,todosMap);renderHome()}
+  });
+  $('#todoList').addEventListener('click',e=>{
+    if(!e.target.closest('[data-act="del"]'))return;
+    const id=e.target.closest('[data-tid]').dataset.tid;
+    todosMap[todayS()]=todosOf(todayS()).filter(x=>x.id!==id);
+    sv(KEY.todos,todosMap);renderHome();
+  });
+  let nt=null;
+  $('#noteArea').addEventListener('input',e=>{clearTimeout(nt);const v=e.target.value;nt=setTimeout(()=>{notesMap[todayS()]=v;sv(KEY.notes,notesMap)},300)});
+  $('#btnCheckin').addEventListener('click',()=>{
+    checkins[todayS()]=true;sv(KEY.checkins,checkins);renderHome();toast('📍 打卡成功，继续保持！');
+  });
+  /* Skill 列表 */
+  $('#sSearch').addEventListener('input',e=>{clearTimeout(wb.sT);const v=e.target.value;wb.sT=setTimeout(()=>{wb.q=v;renderSkillGrid()},250)});
+  $('#sSort').addEventListener('change',e=>{wb.sort=e.target.value;renderSkillGrid()});
+  $('#catTabs').addEventListener('click',e=>{const t=e.target.closest('[data-cat]');if(!t)return;wb.cat=t.dataset.cat;renderCatTabs();renderSkillGrid()});
+  $('#btnNewSkill').addEventListener('click',()=>openSkillForm(null,'new',null));
+  $('#btnImpSkill').addEventListener('click',openImportModal);
+  $('#btnExpAll').addEventListener('click',()=>{
+    const mine=customSkills.map(expSkillObj);
+    if(!mine.length){toast('还没有自建 Skill 可导出');return}
+    dlJSON(mine,'Skill库_'+todayS()+'.json');toast('已导出 '+mine.length+' 个自建 Skill');
+  });
+  $('#sGrid').addEventListener('click',e=>{
+    const tag=e.target.closest('.tag[data-tag]');
+    if(tag){wb.q=tag.dataset.tag;$('#sSearch').value=wb.q;renderSkillGrid();return}
+    const btn=e.target.closest('[data-act]');
+    if(btn){
+      e.stopPropagation();
+      const sid=btn.dataset.sid,act=btn.dataset.act;
+      if(act==='use')openSkillUse(sid);
+      if(act==='exp'){const s=getSkill(sid);if(s)dlJSON(expSkillObj(s),'Skill_'+s.title.replace(/[\\/:*?"<>|]/g,'_')+'.json');toast('已导出此 Skill')}
+      if(act==='del'){
+        const s=customSkills.find(x=>x.id===sid);if(!s)return;
+        if(!confirm('确定删除技能卡片「'+s.title+'」？删除后无法恢复（本地数据清除）'))return;
+        customSkills=customSkills.filter(x=>x.id!==sid);
+        delete skillArchives[sid];sv(KEY.customSkills,customSkills);
+        try{localStorage.setItem('wa_skill_archives',JSON.stringify(skillArchives))}catch(err){}
+        renderSkills();toast('🗑 已删除该技能');
+      }
+      if(act==='edit'){
+        const s=getSkill(sid);
+        if(s.builtin){
+          if(!confirm('这是内置技能，原始内容不可修改。是否复制一份副本到你的自建技能里编辑？'))return;
+          openSkillForm({title:s.title,cat:s.cat==='求职'||s.cat==='考研'||s.cat==='语言考试'||s.cat==='考证'||s.cat==='科研论文'||s.cat==='生活'?s.cat:'自定义',icon:s.icon,description:s.description,tags:(s.tags||[]).join(','),keywords:s.keywords,fieldsText:(s.archiveFields||[]).map(f=>f.label+(f.default?'|'+f.default:'')).join('\n'),sop:(s.promptTemplate||'').replace(TPL_HEAD,'').replace(TPL_TAIL,'')},'new',null);
+          const first=customSkills;
+          // 标记为副本：保存时由 source 决定；这里通过临时变量传递
+          window.__copySource=s.id;
+          toast('已复制内置技能副本，编辑后保存到自建列表');
+        }else{
+          openSkillForm({title:s.title,cat:s.cat,icon:s.icon,description:s.description,tags:(s.tags||[]).join(','),keywords:s.keywords,fieldsText:(s.archiveFields||[]).map(f=>f.label+(f.default?'|'+f.default:'')).join('\n'),sop:(s.promptTemplate||'').replace(TPL_HEAD,'').replace(TPL_TAIL,'')},'edit',sid);
+        }
+      }
+      return;
+    }
+    const card=e.target.closest('.sc[data-sid]');
+    if(card)openSkillUse(card.dataset.sid);
+  });
+  /* 抽屉 */
+  $('#dMask').addEventListener('click',closeDrawer);
+  document.addEventListener('keydown',e=>{
+    if(e.key==='Escape'){
+      if($('#drawer').classList.contains('show'))closeDrawer();
+      else if($('#mMask').classList.contains('show'))closeModal();
+    }
+    if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='s'){
+      if($('#drawer').classList.contains('show')&&$('#fSave')){e.preventDefault();saveSkillFromForm()}
+    }
+  });
+  $('#drawer').addEventListener('click',async e=>{
+    if(e.target.id==='closeDrawer'){closeDrawer();return}
+    // 使用抽屉
+    if(e.target.id==='btnCopyPrompt'){
+      const sid=$('#drawer').dataset.sid;if(!sid)return;
+      const skill=getSkill(sid);const arch=getSkillArch(sid);
+      const text=buildPrompt(skill,arch);
+      const ok=await copyT(text);
+      if(ok){bumpStat(sid);renderSkillGrid();toast('✅ Prompt 已复制，去豆包粘贴提问吧')}
+      else{const pre=$('#promptPreview');pre.textContent=text;pre.hidden=false;toast('自动复制失败，请手动复制下方内容')}
+      return;
+    }
+    if(e.target.id==='btnPreview'){const pre=$('#promptPreview');if(pre.hidden){pre.textContent=buildPrompt(getSkill($('#drawer').dataset.sid),getSkillArch($('#drawer').dataset.sid));pre.hidden=false}else pre.hidden=true;return}
+    // 表单抽屉
+    if(e.target.id==='fCancel'){closeDrawer();return}
+    if(e.target.id==='fClear'){openSkillForm(blankForm(),'new',null);toast('表单已清空');return}
+    if(e.target.id==='fSave'){saveSkillFromForm();return}
+    if(e.target.id==='fDelete'){
+      const s=customSkills.find(x=>x.id===formMode.id);if(!s)return;
+      if(!confirm('确认删除这个技能卡片？删除后本地数据无法恢复。'))return;
+      customSkills=customSkills.filter(x=>x.id!==formMode.id);
+      sv(KEY.customSkills,customSkills);closeDrawer();renderSkills();toast('🗑 已删除该技能');return;
+    }
+  });
+  $('#drawer').addEventListener('input',e=>{
+    const sid=$('#drawer').dataset.sid;if(!sid)return;
+    if(e.target.matches('[data-key]')){getSkillArch(sid)[e.target.dataset.key]=e.target.value;try{localStorage.setItem('wa_skill_archives',JSON.stringify(skillArchives))}catch(err){}}
+    else if(e.target.id==='skillQuestion'){getSkillArch(sid).__q=e.target.value;try{localStorage.setItem('wa_skill_archives',JSON.stringify(skillArchives))}catch(err){}}
+  });
+  /* 项目 */
+  $('#btnNewProject').addEventListener('click',openNewProject);
+  $('#pGrid').addEventListener('click',e=>{const c=e.target.closest('.pcard');if(c)openProjectDetail(c.dataset.pid)});
+  $('#btnBackProjects').addEventListener('click',()=>{curProject=null;switchView('projects')});
+  $('#pdBody').addEventListener('keydown',e=>{
+    if(e.key!=='Enter')return;
+    const gi=e.target.closest('[data-goalinput]');
+    if(gi){
+      const p=projects.find(x=>x.id===curProject);if(!p)return;
+      if(!p.goals)p.goals={daily:[],weekly:[],monthly:[]};
+      const v=gi.value.trim();if(!v)return;
+      p.goals[gi.dataset.goalinput].push(v);
+      sv(KEY.projects,projects);renderProjectDetail();renderHome();return;
+    }
+    const bi=e.target.closest('[data-binput]');
+    if(bi){
+      const p=projects.find(x=>x.id===curProject);if(!p)return;
+      const br=p.branches.find(x=>x.id===bi.closest('.branch').dataset.bid);if(!br)return;
+      const v=bi.value.trim();if(!v)return;
+      br.todos=br.todos||[];br.todos.push({id:uid(),text:v,done:false});
+      sv(KEY.projects,projects);renderProjectDetail();return;
+    }
+  });
+  $('#pdBody').addEventListener('click',e=>{
+    const p=projects.find(x=>x.id===curProject);if(!p)return;
+    const brEl=e.target.closest('.branch');
+    const actBtn=e.target.closest('[data-act]');
+    if(actBtn){
+      const act=actBtn.dataset.act;
+      if(act==='del-goal'){p.goals[actBtn.dataset.type].splice(+actBtn.dataset.i,1);sv(KEY.projects,projects);renderProjectDetail();return}
+      const br=brEl?p.branches.find(x=>x.id===brEl.dataset.bid):null;
+      if(act==='branch-pause'&&br){br.status=br.status==='paused'?'active':'paused';sv(KEY.projects,projects);renderProjectDetail();return}
+      if(act==='branch-archive'&&br){br.status=br.status==='archived'?'active':'archived';sv(KEY.projects,projects);renderProjectDetail();renderHome();return}
+      if(act==='branch-del'&&br){if(!confirm('删除这条支线及其全部待办？'))return;p.branches=p.branches.filter(x=>x.id!==br.id);sv(KEY.projects,projects);renderProjectDetail();toast('支线已删除');return}
+      if(act==='send-today'&&br){
+        const inp=brEl.querySelector('[data-binput]');const v=inp?inp.value.trim():'';
+        if(!v){toast('先在输入框填写待办内容');return}
+        br.todos=br.todos||[];const t={id:uid(),text:v,done:false};br.todos.push(t);
+        ensureTodos(todayS()).push({id:uid(),text:v,done:false,projectId:p.id,branchId:br.id});
+        sv(KEY.projects,projects);sv(KEY.todos,todosMap);renderProjectDetail();renderHome();toast('📌 已加入今日待办');return;
+      }
+      return;
+    }
+    // 支线待办勾选/删除
+    if(brEl){
+      const br=p.branches.find(x=>x.id===brEl.dataset.bid);if(!br)return;
+      const tEl=e.target.closest('.todo-item');
+      if(e.target.closest('[data-act="bdel"]')&&tEl){
+        br.todos=br.todos.filter(x=>x.id!==tEl.dataset.tid);
+        sv(KEY.projects,projects);renderProjectDetail();return;
+      }
+    }
+    if(e.target.id==='btnNewBranch'){
+      $('#mBox').innerHTML='<h3>＋ 新建支线</h3><label class="f"><span>支线名称 *（一块模块任务）</span><input id="nbName" placeholder="例：简历打磨 / 算法刷题 / 面试模拟"></label><div class="macts"><button class="btn" id="nbCancel">取消</button><button class="btn p" id="nbOk">创建</button></div>';
+      $('#mMask').classList.add('show');
+      $('#nbCancel').onclick=closeModal;
+      $('#nbOk').onclick=()=>{
+        const v=$('#nbName').value.trim();if(!v){toast('⚠️ 请填写支线名称');return}
+        p.branches=p.branches||[];p.branches.push({id:uid(),name:v,status:'active',todos:[]});
+        sv(KEY.projects,projects);closeModal();renderProjectDetail();renderHome();toast('✅ 支线已创建');
+      };
+      setTimeout(()=>$('#nbName').focus(),60);
+    }
+  });
+  $('#pdBody').addEventListener('change',e=>{
+    const p=projects.find(x=>x.id===curProject);if(!p)return;
+    if(e.target.matches('[data-act="btoggle"]')){
+      const brEl=e.target.closest('.branch');
+      const br=p.branches.find(x=>x.id===brEl.dataset.bid);if(!br)return;
+      const t=br.todos.find(x=>x.id===e.target.closest('.todo-item').dataset.tid);
+      if(t){t.done=e.target.checked;sv(KEY.projects,projects);renderProjectDetail()}
+    }
+  });
+  /* 日志 */
+  $('#logFilter').addEventListener('change',renderLogs);
+  $('#logList').addEventListener('click',async e=>{
+    const c=e.target.closest('[data-act="copy-log"]');
+    if(c){const r=reports.find(x=>x.id===c.dataset.lid);if(r){const ok=await copyT(r.content);toast(ok?'已复制总结':'复制失败，请手动复制')}return}
+    const d=e.target.closest('[data-act="del-log"]');
+    if(d){if(!confirm('删除这条总结？'))return;reports=reports.filter(x=>x.id!==d.dataset.lid);sv(KEY.reports,reports);renderLogs()}
+  });
+  /* 模态遮罩点击关闭 */
+  $('#mMask').addEventListener('click',e=>{if(e.target.id==='mMask')closeModal()});
+}
+/* ============================================================
+   11. 初始化
+============================================================ */
+(function init(){
+  applyTheme();
+  runAutoReports();
+  renderHome();
+  renderSkills();
+  renderProjects();
+  renderLogs();
+  bind();
+  // 内置副本 source 标记（通过 window.__copySource 在保存时读取）
+  const origSave=saveSkillFromForm;
+  saveSkillFromForm=function(){
+    if(window.__copySource){
+      const f=collectForm();
+      const title=f.title.trim();
+      if(!title||title.length<4||title.length>30){toast('⚠️ 名称需在 4-30 字之间');return}
+      const fields=parseFieldsText(f.fieldsText);
+      if(!fields.length){toast('⚠️ 至少填写一个档案字段');return}
+      customSkills.unshift({id:'cs_'+uid(),title,cat:f.cat,icon:(f.icon||'✨').trim()||'✨',description:f.description.trim(),tags:f.tags.split(/[,，]/).map(x=>x.trim()).filter(Boolean).slice(0,8),keywords:f.keywords.trim(),archiveFields:fields,promptTemplate:buildTpl(f.sop||''),uploadDate:todayS(),builtin:false,source:'copy-builtin',updateAt:Date.now()});
+      sv(KEY.customSkills,customSkills);localStorage.removeItem(KEY.draft);
+      window.__copySource=null;renderSkills();closeDrawer();toast('✅ 副本已保存到你的自建技能');return;
+    }
+    origSave();
+  };
+  let lastDay=todayS();
+  setInterval(()=>{
+    const now=todayS();
+    if(now!==lastDay){lastDay=now;runAutoReports();renderHome();renderLogs()}
+  },60000);
+})();
+</script>
+</body>
+</html>
